@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iron Drip/Drop 2026 Battleship Bingo - Completed By Feature v4</title>
+    <title>Iron Drip/Drop 2026 Battleship Bingo - Opposing Shot Logs v7</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;600;700&display=swap" rel="stylesheet">
@@ -992,7 +992,7 @@
                     </div>
                 </div>
                 <div class="shot-log">
-                    <h3>Shot Log - RED TEAM</h3>
+                    <h3>Shots Fired - RED TEAM</h3>
                     <div id="team1Log" class="log-entries">
                         <div class="log-empty">No shots fired yet</div>
                     </div>
@@ -1059,7 +1059,7 @@
                     </div>
                 </div>
                 <div class="shot-log">
-                    <h3>Shot Log - BLUE TEAM</h3>
+                    <h3>Shots Fired - BLUE TEAM</h3>
                     <div id="team2Log" class="log-entries">
                         <div class="log-empty">No shots fired yet</div>
                     </div>
@@ -1482,6 +1482,11 @@
             const colNumber = col + 1; // 1-13
             return `${rowLetter}${colNumber}`;
         }
+
+
+        function getShootingTeam(targetBoardTeam) {
+            return targetBoardTeam === 'team1' ? 'team2' : 'team1';
+        }
         
         // Initialize boards
         function initializeBoards() {
@@ -1607,8 +1612,10 @@
         function completeMark(team, index, markType, completedBy) {
             console.log('completeMark called:', { team, index, markType, completedBy });
 
-            if (!shotLogs[team]) {
-                shotLogs[team] = [];
+            const shootingTeam = getShootingTeam(team);
+
+            if (!shotLogs[shootingTeam]) {
+                shotLogs[shootingTeam] = [];
             }
 
             if (!tileDetails[team]) {
@@ -1627,25 +1634,30 @@
 
             const coordinate = getCoordinate(index);
 
+            // Remove this coordinate from both logs so moving/clearing stays clean
+            ['team1', 'team2'].forEach(logTeam => {
+                if (!shotLogs[logTeam]) shotLogs[logTeam] = [];
+                shotLogs[logTeam] = shotLogs[logTeam].filter(log => log.coordinate !== coordinate || log.targetBoard !== team);
+            });
+
             if (newState !== null) {
                 const timestamp = new Date();
 
-                shotLogs[team] = shotLogs[team].filter(log => log.coordinate !== coordinate);
-
-                shotLogs[team].unshift({
+                shotLogs[shootingTeam].unshift({
                     coordinate,
                     status: newState,
                     timestamp: timestamp.toISOString(),
-                    completedBy: completedBy || ''
+                    completedBy: completedBy || '',
+                    targetBoard: team
                 });
 
                 tileDetails[team][coordinate] = {
                     completedBy: completedBy || '',
                     status: newState,
-                    timestamp: timestamp.toISOString()
+                    timestamp: timestamp.toISOString(),
+                    shootingTeam: shootingTeam
                 };
             } else {
-                shotLogs[team] = shotLogs[team].filter(log => log.coordinate !== coordinate);
                 delete tileDetails[team][coordinate];
             }
 
