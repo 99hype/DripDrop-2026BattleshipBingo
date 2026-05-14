@@ -82,7 +82,6 @@
         header {
             text-align: center;
             margin-bottom: 40px;
-            animation: fadeInDown 0.8s ease-out;
         }
         
         h1 {
@@ -112,7 +111,6 @@
             top: 20px;
             right: 20px;
             z-index: 1000;
-            animation: fadeInRight 0.6s ease-out 0.3s both;
             display: flex;
             gap: 10px;
             align-items: center;
@@ -148,7 +146,7 @@
         
         .btn:active {
             transform: translateY(4px);
-            box-shadow: 0 0 0 var(--osrs-brown), 0 2px 10px rgba(0,0,0,0.4);
+            box-shadow: none;
         }
         
         .modal {
@@ -162,7 +160,6 @@
             z-index: 2000;
             align-items: center;
             justify-content: center;
-            animation: fadeIn 0.3s ease-out;
         }
         
         .modal.active {
@@ -177,7 +174,6 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.6);
             max-width: 400px;
             width: 90%;
-            animation: scaleIn 0.3s ease-out;
         }
         
         .modal h2 {
@@ -240,7 +236,6 @@
             grid-template-columns: 1fr 1fr;
             gap: 40px;
             margin-bottom: 40px;
-            animation: fadeInUp 0.8s ease-out 0.2s both;
         }
         
         @media (max-width: 1200px) {
@@ -322,7 +317,7 @@
             border: 1px solid rgba(255, 176, 0, 0.35);
             color: var(--osrs-yellow);
             text-shadow: none;
-            box-shadow: 0 0 12px rgba(0,0,0,0.28);
+            box-shadow: none;
         }
 
         .red-team-title .team-counter {
@@ -475,12 +470,12 @@
 
         .red-team-board::before {
             background: linear-gradient(135deg, #ff7a75, var(--red-team-main), var(--red-team-dark));
-            opacity: 0.48;
+            opacity: 1;
         }
 
         .blue-team-board::before {
             background: linear-gradient(135deg, #7db7ff, var(--blue-team-main), var(--blue-team-dark));
-            opacity: 0.48;
+            opacity: 1;
         }
 
 
@@ -526,7 +521,7 @@
             letter-spacing: 1px;
             vertical-align: middle;
             text-transform: uppercase;
-            box-shadow: 0 0 18px rgba(0,0,0,0.35);
+            box-shadow: none;
         }
 
         .red-team-title .team-counter {
@@ -606,7 +601,7 @@
             background: linear-gradient(135deg, var(--osrs-yellow), var(--osrs-orange), var(--osrs-red));
             border-radius: 14px;
             z-index: -1;
-            opacity: 0.3;
+            opacity: 1;
         }
         
         .board-header {
@@ -857,7 +852,6 @@
             letter-spacing: 2px;
             box-shadow: 0 6px 30px rgba(255, 176, 0, 0.4);
             z-index: 1000;
-            animation: bounce 2s infinite;
         }
         
         .edit-mode-banner.active {
@@ -880,7 +874,6 @@
             letter-spacing: 1.5px;
             box-shadow: 0 4px 20px rgba(255, 68, 68, 0.5);
             z-index: 999;
-            animation: pulse 2s infinite;
         }
         
         .host-active-banner.active {
@@ -938,7 +931,7 @@
                 transform: translateX(-50%) scale(1);
             }
             50% {
-                opacity: 0.8;
+                opacity: 1;
                 transform: translateX(-50%) scale(1.02);
             }
         }
@@ -971,7 +964,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            animation: slideInLeft 0.3s ease-out;
         }
         
         .log-entry.hit {
@@ -1167,7 +1159,6 @@
         
         .error-message.active {
             display: block;
-            animation: fadeIn 0.3s ease-out;
         }
     
 
@@ -1304,7 +1295,7 @@
             font-size: 1rem;
             color: #ffd84a;
             text-align: center;
-            opacity: 0.92;
+            opacity: 1;
             text-shadow:
                 2px 2px 0 rgba(0,0,0,0.92),
                 0 0 8px rgba(0,0,0,0.35);
@@ -1427,7 +1418,7 @@
         .task-item.completed {
             background: linear-gradient(180deg, rgba(35, 120, 58, 0.85), rgba(14, 70, 34, 0.85)) !important;
             border-color: rgba(126, 255, 158, 0.65) !important;
-            box-shadow: 0 0 14px rgba(35, 200, 90, 0.22);
+            box-shadow: none;
         }
 
         .task-coordinate {
@@ -1445,7 +1436,7 @@
             margin-top: 4px;
             color: #b6ffbf;
             font-size: 0.82rem;
-            opacity: 0.95;
+            opacity: 1;
         }
 
     
@@ -1596,6 +1587,82 @@
             font-display: block;
         }
 </style>
+
+<style>
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+    }
+}
+
+.loading-screen,
+.loading-overlay,
+.splash-screen {
+    animation-duration: 0.15s !important;
+    transition-duration: 0.1s !important;
+    will-change: opacity;
+}
+
+canvas {
+    image-rendering: pixelated;
+}
+</style>
+
+
+<style id="startup-performance-patch">
+    /* Hard-disable expensive startup animations */
+    *,
+    *::before,
+    *::after {
+        transition-property: background-color, color, border-color, outline-color !important;
+        transition-duration: 0.04s !important;
+        transition-timing-function: linear !important;
+        scroll-behavior: auto !important;
+    }
+
+    header,
+    .boards-container,
+    .admin-controls,
+    .board-wrapper,
+    .modal,
+    .modal-content,
+    .log-entry,
+    .edit-mode-banner,
+    .host-active-banner {
+        transform: none !important;
+        will-change: auto !important;
+    }
+
+    /* Remove the heaviest paint effects that can stutter on page load */
+    header,
+    .board-wrapper,
+    .shot-log,
+    .log-entry,
+    .modal-content,
+    .mark-context-menu,
+    .sync-status {
+        box-shadow: none !important;
+    }
+
+    body {
+        background-attachment: scroll !important;
+    }
+
+    body::before {
+        display: none !important;
+        content: none !important;
+    }
+
+    .cell:hover,
+    .cell.edit-mode:hover {
+        transform: none !important;
+    }
+
+    .cell-tooltip {
+        transition: opacity 0.04s linear !important;
+    }
+</style>
+
 </head>
 <body>
     <div class="container">
@@ -1750,7 +1817,7 @@
             <div class="form-group">
                 <label for="passwordInput">Enter Password</label>
                 <input type="password" id="passwordInput" placeholder="Event host password">
-                <div style="margin-top:8px;font-size:0.8rem;opacity:0.7;">Press ENTER to login</div>
+                <div style="margin-top:8px;font-size:0.8rem;opacity: 1;">Press ENTER to login</div>
                 <div class="error-message" id="errorMessage">Incorrect password</div>
                 <div class="error-message" id="lockoutMessage"></div>
             </div>
