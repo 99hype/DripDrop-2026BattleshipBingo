@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iron Drip/Drop 2026 Battleship Bingo - Correct Supabase URL v2</title>
+    <title>Iron Drip/Drop 2026 Battleship Bingo - Realtime Auth Fixed v3</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;600;700&display=swap" rel="stylesheet">
@@ -1011,7 +1011,7 @@
     <div class="sync-status warn" id="syncStatus">Sync: starting...</div>
 
     <!-- Supabase SDK for real-time database -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4"></script>
 
     <script>
         // Supabase Configuration (FREE and works better than Firebase)
@@ -1025,7 +1025,16 @@
         try {
             if (typeof window.supabase !== 'undefined' && SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
                 const { createClient } = window.supabase;
-                supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+                supabaseClient = createClient(
+                    SUPABASE_URL,
+                    SUPABASE_KEY,
+                    {
+                        auth: {
+                            persistSession: false,
+                            autoRefreshToken: false
+                        }
+                    }
+                );
                 supabaseConnected = true;
                 console.log('✅ Supabase connected successfully!');
             } else {
