@@ -981,8 +981,11 @@
     </div>
 
     <!-- Firebase SDK from jsDelivr -->
+    <!-- Temporarily disabled due to CORS issues with file:// protocol -->
+    <!--
     <script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-app-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-database-compat.js"></script>
+    -->
 
     <script>
         // Firebase Configuration
@@ -998,13 +1001,22 @@
         
         // Initialize Firebase
         let database;
+        let firebaseConnected = false;
+        
         try {
-            firebase.initializeApp(firebaseConfig);
-            database = firebase.database();
-            console.log('🔥 Firebase connected successfully!');
+            if (typeof firebase !== 'undefined') {
+                firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+                firebaseConnected = true;
+                console.log('🔥 Firebase connected successfully!');
+            } else {
+                console.warn('⚠️ Firebase not loaded. Using local-only mode.');
+                alert('Firebase not available. Board will work locally but won\'t sync across devices.');
+            }
         } catch (error) {
-            console.error('Firebase initialization error:', error);
-            alert('Firebase connection failed. Check console for details.');
+            console.error('❌ Firebase initialization error:', error);
+            firebaseConnected = false;
+            alert('Firebase connection failed. Board will work locally but won\'t sync across devices.');
         }
         
         // Configuration
@@ -1197,16 +1209,22 @@
         
         // Track host mode status in Firebase
         function setHostModeStatus(active) {
-            if (!database) return;
+            if (!database || !firebaseConnected) {
+                console.log('Host mode:', active ? 'ACTIVE' : 'INACTIVE', '(local only)');
+                return;
+            }
             database.ref('hostMode').set({
                 active: active,
                 timestamp: Date.now()
+            }).catch(error => {
+                console.error('Error setting host mode:', error);
             });
         }
         
         // Listen for host mode changes
         function listenForHostMode() {
-            if (!database) return;
+            if (!database || !firebaseConnected) return;
+            
             database.ref('hostMode').on('value', (snapshot) => {
                 const data = snapshot.val();
                 const hostActiveBanner = document.getElementById('hostActiveBanner');
@@ -1247,8 +1265,8 @@
                 cell.dataset.index = i;
                 cell.dataset.team = team;
                 
-                // Right-click to show context menu in edit mode
-                cell.addEventListener('contextmenu', (e) => {
+                // Left-click to show context menu in edit mode
+                cell.addEventListener('click', (e) => {
                     if (!isEditMode) return;
                     e.preventDefault();
                     showContextMenu(e, team, i);
@@ -1458,7 +1476,13 @@
         });
         
         function saveState() {
-            if (!database) return;
+            if (!database || !firebaseConnected) {
+                // Fallback to localStorage if Firebase not available
+                localStorage.setItem('battleshipBoardStates', JSON.stringify(boardStates));
+                localStorage.setItem('battleshipShotLogs', JSON.stringify(shotLogs));
+                console.log('Saved to localStorage (Firebase not available)');
+                return;
+            }
             
             // Save to Firebase Realtime Database
             database.ref('battleship').set({
@@ -1467,11 +1491,30 @@
                 lastUpdate: Date.now()
             }).catch(error => {
                 console.error('Firebase save error:', error);
+                // Fallback to localStorage
+                localStorage.setItem('battleshipBoardStates', JSON.stringify(boardStates));
+                localStorage.setItem('battleshipShotLogs', JSON.stringify(shotLogs));
             });
         }
         
         function loadState() {
-            if (!database) return;
+            if (!database || !firebaseConnected) {
+                // Fallback to localStorage if Firebase not available
+                const saved = localStorage.getItem('battleshipBoardStates');
+                if (saved) {
+                    boardStates = JSON.parse(saved);
+                }
+                
+                const savedLogs = localStorage.getItem('battleshipShotLogs');
+                if (savedLogs) {
+                    shotLogs = JSON.parse(savedLogs);
+                }
+                
+                updateAllCells();
+                updateLogs();
+                console.log('Loaded from localStorage (Firebase not available)');
+                return;
+            }
             
             // Listen for changes in Firebase
             database.ref('battleship').on('value', (snapshot) => {
@@ -1510,13 +1553,21 @@
         });
         
         async function checkPassword() {
+            console.log('checkPassword called');
             const password = document.getElementById('passwordInput').value;
+            console.log('Password entered:', password ? 'YES' : 'NO');
+            
             const hashedInput = await verifyCredentials(password);
+            console.log('Hash computed:', hashedInput);
+            console.log('Expected hash:', AUTH_TOKEN);
+            console.log('Match:', hashedInput === AUTH_TOKEN);
             
             if (hashedInput === AUTH_TOKEN) {
+                console.log('Password correct! Entering edit mode...');
                 enterEditMode();
                 closeModal();
             } else {
+                console.log('Password incorrect');
                 document.getElementById('errorMessage').classList.add('active');
                 document.getElementById('passwordInput').value = '';
                 document.getElementById('passwordInput').focus();
