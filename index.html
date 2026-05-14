@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iron Drip/Drop 2026 Battleship Bingo - Realtime Auth Fixed v3</title>
+    <title>Iron Drip/Drop 2026 Battleship Bingo - Completed By Feature v4</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;600;700&display=swap" rel="stylesheet">
@@ -662,6 +662,21 @@
             color: var(--osrs-tan);
         }
         
+
+        .completed-by-text {
+            font-size: 13px;
+            color: rgba(191, 161, 105, 0.9);
+            margin-top: 3px;
+            font-weight: 600;
+        }
+
+        .completed-by-label {
+            color: var(--osrs-yellow);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
         .log-timestamp {
             font-size: 12px;
             color: rgba(191, 161, 105, 0.6);
@@ -994,6 +1009,25 @@
         </div>
     </div>
     
+
+
+    <div class="modal" id="completedByModal">
+        <div class="modal-content">
+            <h2 id="completedByTitle">Completed By</h2>
+            <p style="color: var(--osrs-tan); margin-bottom: 20px;">
+                Enter the username for <span id="completedByCoordinate"></span>
+            </p>
+            <div class="form-group">
+                <label for="completedByInput">Username / Player Name</label>
+                <input type="text" id="completedByInput" placeholder="Who completed this tile?">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeCompletedByModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmCompletedBy()">Save</button>
+            </div>
+        </div>
+    </div>
+
     <div class="edit-mode-banner" id="editBanner">
         ⚔️ Host Mode Active - Click cells to mark ⚔️
     </div>
@@ -1092,6 +1126,26 @@
             });
             return value;
         }
+
+
+        function defaultTileDetails() {
+            return {
+                team1: {},
+                team2: {}
+            };
+        }
+
+        function normalizeTileDetails(value) {
+            const fallback = defaultTileDetails();
+            if (!value || typeof value !== 'object') return fallback;
+            ['team1', 'team2'].forEach(team => {
+                if (!value[team] || typeof value[team] !== 'object' || Array.isArray(value[team])) {
+                    value[team] = {};
+                }
+            });
+            return value;
+        }
+
 
         // Configuration
         const ROWS = 12;
@@ -1281,6 +1335,13 @@
             team2: []
         };
 
+        let tileDetails = {
+            team1: {},
+            team2: {}
+        };
+
+        let pendingMark = null;
+
         let supabaseBroadcastChannel = null;
         let realtimeSubscribed = false;
         
@@ -1417,20 +1478,55 @@
         
         function applyMark(team, index, markType) {
             console.log('applyMark called:', { team, index, markType, isEditMode });
-            console.log('shotLogs:', shotLogs);
-            
+
             if (!isEditMode) {
                 console.log('Not in edit mode, returning');
                 return;
             }
-            
-            // Ensure shotLogs exists for this team
+
+            if (markType === 'clear') {
+                completeMark(team, index, null, '');
+                return;
+            }
+
+            pendingMark = { team, index, markType };
+            const coordinate = getCoordinate(index);
+            const existingName = tileDetails[team] && tileDetails[team][coordinate] ? tileDetails[team][coordinate].completedBy || '' : '';
+
+            document.getElementById('completedByTitle').textContent = markType === 'hit' ? 'Mark Hit' : 'Mark Miss';
+            document.getElementById('completedByCoordinate').textContent = coordinate;
+            document.getElementById('completedByInput').value = existingName;
+            document.getElementById('completedByModal').classList.add('active');
+
+            setTimeout(() => document.getElementById('completedByInput').focus(), 100);
+        }
+
+        function closeCompletedByModal() {
+            document.getElementById('completedByModal').classList.remove('active');
+            pendingMark = null;
+        }
+
+        function confirmCompletedBy() {
+            if (!pendingMark) return;
+
+            const completedBy = document.getElementById('completedByInput').value.trim();
+            completeMark(pendingMark.team, pendingMark.index, pendingMark.markType, completedBy);
+            closeCompletedByModal();
+        }
+
+        function completeMark(team, index, markType, completedBy) {
+            console.log('completeMark called:', { team, index, markType, completedBy });
+
             if (!shotLogs[team]) {
                 shotLogs[team] = [];
             }
-            
+
+            if (!tileDetails[team]) {
+                tileDetails[team] = {};
+            }
+
             let newState;
-            
+
             if (markType === 'hit') {
                 newState = 'hit';
             } else if (markType === 'miss') {
@@ -1438,39 +1534,36 @@
             } else {
                 newState = null;
             }
-            
-            console.log('New state:', newState);
-            
-            // Add to shot log only if changing to hit or miss
+
+            const coordinate = getCoordinate(index);
+
             if (newState !== null) {
-                const coordinate = getCoordinate(index);
                 const timestamp = new Date();
-                
-                // Remove any existing log entry for this coordinate
+
                 shotLogs[team] = shotLogs[team].filter(log => log.coordinate !== coordinate);
-                
-                // Add new log entry at the beginning
+
                 shotLogs[team].unshift({
                     coordinate,
                     status: newState,
-                    timestamp: timestamp.toISOString()
+                    timestamp: timestamp.toISOString(),
+                    completedBy: completedBy || ''
                 });
+
+                tileDetails[team][coordinate] = {
+                    completedBy: completedBy || '',
+                    status: newState,
+                    timestamp: timestamp.toISOString()
+                };
             } else {
-                // If clearing the cell, remove from log
-                const coordinate = getCoordinate(index);
                 shotLogs[team] = shotLogs[team].filter(log => log.coordinate !== coordinate);
+                delete tileDetails[team][coordinate];
             }
-            
+
             boardStates[team][index] = newState;
-            console.log('Updating cell...');
             updateCell(team, index, newState);
-            console.log('Updating logs...');
             updateLogs();
-            console.log('Saving state...');
             saveState();
-            console.log('Apply mark complete!');
         }
-        
         function updateCell(team, index, state) {
             const grid = document.getElementById(team + 'Grid');
             const cell = grid.children[index];
@@ -1525,10 +1618,17 @@
                             hour12: true 
                         });
                         
+                        const completedBy = log.completedBy ? `
+                                    <div class="completed-by-text">
+                                        <span class="completed-by-label">By:</span> ${log.completedBy}
+                                    </div>
+                                ` : '';
+
                         return `
                             <div class="log-entry ${log.status}">
                                 <div>
                                     <span class="log-coordinate">${log.coordinate}</span>
+                                    ${completedBy}
                                     <div class="log-timestamp">${timeStr}</div>
                                 </div>
                                 <span class="log-status ${log.status}">${log.status.toUpperCase()}</span>
@@ -1566,6 +1666,7 @@
                 if (resetTeam) {
                     boardStates[resetTeam] = Array(ROWS * COLS).fill(null);
                     shotLogs[resetTeam] = [];
+                    tileDetails[resetTeam] = {};
                     updateAllCells();
                     updateLogs();
                     saveState();
@@ -1589,6 +1690,19 @@
                 closeResetModal();
             }
         });
+
+
+        document.getElementById('completedByInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                confirmCompletedBy();
+            }
+        });
+
+        document.getElementById('completedByModal').addEventListener('click', (e) => {
+            if (e.target.id === 'completedByModal') {
+                closeCompletedByModal();
+            }
+        });
         
 
         function subscribeToRealtime() {
@@ -1609,6 +1723,7 @@
                         if (payload.new) {
                             boardStates = normalizeBoardStates(payload.new.board_states);
                             shotLogs = normalizeShotLogs(payload.new.shot_logs);
+                            tileDetails = normalizeTileDetails(payload.new.tile_details);
                             updateAllCells();
                             updateLogs();
                             setSyncStatus('received realtime database update at ' + new Date().toLocaleTimeString(), 'ok');
@@ -1634,6 +1749,7 @@
                     if (payload) {
                         boardStates = normalizeBoardStates(payload.board_states);
                         shotLogs = normalizeShotLogs(payload.shot_logs);
+                        tileDetails = normalizeTileDetails(payload.tile_details);
                         updateAllCells();
                         updateLogs();
                         setSyncStatus('received instant broadcast update at ' + new Date().toLocaleTimeString(), 'ok');
@@ -1650,6 +1766,7 @@
 
             boardStates = normalizeBoardStates(boardStates);
             shotLogs = normalizeShotLogs(shotLogs);
+            tileDetails = normalizeTileDetails(tileDetails);
 
             try {
                 setSyncStatus('saving...', 'warn');
@@ -1660,6 +1777,7 @@
                         id: 1,
                         board_states: boardStates,
                         shot_logs: shotLogs,
+                        tile_details: tileDetails,
                         last_update: new Date().toISOString()
                     }, { onConflict: 'id' })
                     .select()
@@ -1674,6 +1792,7 @@
                 if (data) {
                     boardStates = normalizeBoardStates(data.board_states);
                     shotLogs = normalizeShotLogs(data.shot_logs);
+                    tileDetails = normalizeTileDetails(data.tile_details);
                     updateAllCells();
                     updateLogs();
                 }
@@ -1686,7 +1805,8 @@
                         event: 'state_changed',
                         payload: {
                             board_states: boardStates,
-                            shot_logs: shotLogs
+                            shot_logs: shotLogs,
+                            tile_details: tileDetails
                         }
                     });
                 }
@@ -1710,7 +1830,7 @@
 
                 const { data, error } = await supabaseClient
                     .from('battleship_state')
-                    .select('id, board_states, shot_logs, last_update')
+                    .select('id, board_states, shot_logs, tile_details, last_update')
                     .eq('id', 1)
                     .maybeSingle();
 
@@ -1727,6 +1847,7 @@
                             id: 1,
                             board_states: defaultBoardStates(),
                             shot_logs: defaultShotLogs(),
+                            tile_details: defaultTileDetails(),
                             last_update: new Date().toISOString()
                         });
 
@@ -1738,10 +1859,12 @@
 
                     boardStates = defaultBoardStates();
                     shotLogs = defaultShotLogs();
+                    tileDetails = defaultTileDetails();
                     setSyncStatus('created initial row in Supabase', 'ok');
                 } else {
                     boardStates = normalizeBoardStates(data.board_states);
                     shotLogs = normalizeShotLogs(data.shot_logs);
+                    tileDetails = normalizeTileDetails(data.tile_details);
                     setSyncStatus('loaded from Supabase at ' + new Date().toLocaleTimeString(), 'ok');
                 }
 
