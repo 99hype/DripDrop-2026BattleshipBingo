@@ -773,6 +773,34 @@
             }
         }
         
+
+        .sync-status {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            z-index: 3000;
+            background: rgba(0,0,0,0.88);
+            color: var(--osrs-tan);
+            border: 2px solid var(--osrs-brown);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 12px;
+            max-width: 520px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .sync-status.ok {
+            border-color: var(--osrs-green);
+            color: #bff5bf;
+        }
+        .sync-status.warn {
+            border-color: var(--osrs-orange);
+            color: var(--osrs-yellow);
+        }
+        .sync-status.error {
+            border-color: var(--osrs-red);
+            color: #ffb4b4;
+        }
+
         .error-message {
             color: var(--osrs-red);
             font-size: 14px;
@@ -980,12 +1008,14 @@
         <div class="mark-option clear" data-mark="clear">⬜ Clear Cell</div>
     </div>
 
+    <div class="sync-status warn" id="syncStatus">Sync: starting...</div>
+
     <!-- Supabase SDK for real-time database -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         // Supabase Configuration (FREE and works better than Firebase)
-        const SUPABASE_URL = 'https://iicrezlhiskulxgmoyvx.supabase.co';
+        const SUPABASE_URL = 'https://iicrczlhiskulxgmoyvx.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlpY3JlemxoaXNrdWx4Z21veXZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc1NDE4MzYsImV4cCI6MjA2MzExNzgzNn0.sb_publishable_EhZn76ph551WwdCMIdtfrg_Oj20JBDG';
         
         // Initialize Supabase
@@ -1006,6 +1036,54 @@
             supabaseConnected = false;
         }
         
+
+
+        function setSyncStatus(message, type = 'warn') {
+            const el = document.getElementById('syncStatus');
+            if (!el) return;
+            el.textContent = 'Sync: ' + message;
+            el.className = 'sync-status ' + type;
+            console.log('Sync:', message);
+        }
+
+        function defaultBoardStates() {
+            return {
+                team1: Array(ROWS * COLS).fill(null),
+                team2: Array(ROWS * COLS).fill(null)
+            };
+        }
+
+        function defaultShotLogs() {
+            return {
+                team1: [],
+                team2: []
+            };
+        }
+
+        function normalizeBoardStates(value) {
+            const fallback = defaultBoardStates();
+            if (!value || typeof value !== 'object') return fallback;
+            ['team1', 'team2'].forEach(team => {
+                if (!Array.isArray(value[team])) value[team] = [];
+                for (let i = 0; i < ROWS * COLS; i++) {
+                    if (value[team][i] !== 'hit' && value[team][i] !== 'miss') {
+                        value[team][i] = null;
+                    }
+                }
+                value[team] = value[team].slice(0, ROWS * COLS);
+            });
+            return value;
+        }
+
+        function normalizeShotLogs(value) {
+            const fallback = defaultShotLogs();
+            if (!value || typeof value !== 'object') return fallback;
+            ['team1', 'team2'].forEach(team => {
+                if (!Array.isArray(value[team])) value[team] = [];
+            });
+            return value;
+        }
+
         // Configuration
         const ROWS = 12;
         const COLS = 13;
@@ -1193,6 +1271,9 @@
             team1: [],
             team2: []
         };
+
+        let supabaseBroadcastChannel = null;
+        let realtimeSubscribed = false;
         
         // Track host mode status in Supabase
         async function setHostModeStatus(active) {
@@ -1500,83 +1581,168 @@
             }
         });
         
+
+        function subscribeToRealtime() {
+            if (!supabaseClient || realtimeSubscribed) return;
+            realtimeSubscribed = true;
+
+            supabaseClient
+                .channel('battleship_db_realtime')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'battleship_state'
+                    },
+                    (payload) => {
+                        console.log('Postgres realtime update:', payload);
+                        if (payload.new) {
+                            boardStates = normalizeBoardStates(payload.new.board_states);
+                            shotLogs = normalizeShotLogs(payload.new.shot_logs);
+                            updateAllCells();
+                            updateLogs();
+                            setSyncStatus('received realtime database update at ' + new Date().toLocaleTimeString(), 'ok');
+                        }
+                    }
+                )
+                .subscribe((status, err) => {
+                    if (err) {
+                        setSyncStatus('REALTIME SUBSCRIBE ERROR - ' + (err.message || err), 'error');
+                        console.error('Realtime subscribe error:', err);
+                        return;
+                    }
+                    console.log('Realtime status:', status);
+                    if (status === 'SUBSCRIBED') {
+                        setSyncStatus('connected and listening for live updates', 'ok');
+                    }
+                });
+
+            supabaseBroadcastChannel = supabaseClient
+                .channel('battleship_broadcast')
+                .on('broadcast', { event: 'state_changed' }, ({ payload }) => {
+                    console.log('Broadcast realtime update:', payload);
+                    if (payload) {
+                        boardStates = normalizeBoardStates(payload.board_states);
+                        shotLogs = normalizeShotLogs(payload.shot_logs);
+                        updateAllCells();
+                        updateLogs();
+                        setSyncStatus('received instant broadcast update at ' + new Date().toLocaleTimeString(), 'ok');
+                    }
+                })
+                .subscribe();
+        }
+
         async function saveState() {
             if (!supabaseClient || !supabaseConnected) {
-                console.error('Supabase not connected');
-                return;
+                setSyncStatus('Supabase is not connected. Check the API URL/key in the HTML.', 'error');
+                return false;
             }
 
+            boardStates = normalizeBoardStates(boardStates);
+            shotLogs = normalizeShotLogs(shotLogs);
+
             try {
-                const { error } = await supabaseClient
+                setSyncStatus('saving...', 'warn');
+
+                const { data, error } = await supabaseClient
                     .from('battleship_state')
                     .upsert({
                         id: 1,
                         board_states: boardStates,
                         shot_logs: shotLogs,
                         last_update: new Date().toISOString()
-                    });
+                    }, { onConflict: 'id' })
+                    .select()
+                    .single();
 
                 if (error) {
+                    setSyncStatus('SAVE FAILED - ' + (error.message || JSON.stringify(error)), 'error');
                     console.error('Save error:', error);
-                } else {
-                    console.log('Saved to Supabase');
+                    return false;
                 }
+
+                if (data) {
+                    boardStates = normalizeBoardStates(data.board_states);
+                    shotLogs = normalizeShotLogs(data.shot_logs);
+                    updateAllCells();
+                    updateLogs();
+                }
+
+                setSyncStatus('saved to Supabase at ' + new Date().toLocaleTimeString(), 'ok');
+
+                if (supabaseBroadcastChannel) {
+                    supabaseBroadcastChannel.send({
+                        type: 'broadcast',
+                        event: 'state_changed',
+                        payload: {
+                            board_states: boardStates,
+                            shot_logs: shotLogs
+                        }
+                    });
+                }
+
+                return true;
             } catch (err) {
+                setSyncStatus('SAVE CRASHED - ' + (err.message || err), 'error');
                 console.error('Save failed:', err);
+                return false;
             }
         }
         
         async function loadState() {
             if (!supabaseClient || !supabaseConnected) {
-                console.error('Supabase not connected');
+                setSyncStatus('Supabase is not connected. Check the API URL/key in the HTML.', 'error');
                 return;
             }
 
             try {
+                setSyncStatus('loading from Supabase...', 'warn');
+
                 const { data, error } = await supabaseClient
                     .from('battleship_state')
-                    .select('*')
+                    .select('id, board_states, shot_logs, last_update')
                     .eq('id', 1)
-                    .single();
+                    .maybeSingle();
 
                 if (error) {
+                    setSyncStatus('LOAD FAILED - ' + (error.message || JSON.stringify(error)), 'error');
                     console.error('Load error:', error);
+                    return;
                 }
 
-                if (data) {
-                    boardStates = data.board_states || boardStates;
-                    shotLogs = data.shot_logs || shotLogs;
+                if (!data) {
+                    const { error: seedError } = await supabaseClient
+                        .from('battleship_state')
+                        .insert({
+                            id: 1,
+                            board_states: defaultBoardStates(),
+                            shot_logs: defaultShotLogs(),
+                            last_update: new Date().toISOString()
+                        });
+
+                    if (seedError) {
+                        setSyncStatus('INITIAL ROW CREATE FAILED - ' + (seedError.message || JSON.stringify(seedError)), 'error');
+                        console.error('Seed error:', seedError);
+                        return;
+                    }
+
+                    boardStates = defaultBoardStates();
+                    shotLogs = defaultShotLogs();
+                    setSyncStatus('created initial row in Supabase', 'ok');
+                } else {
+                    boardStates = normalizeBoardStates(data.board_states);
+                    shotLogs = normalizeShotLogs(data.shot_logs);
+                    setSyncStatus('loaded from Supabase at ' + new Date().toLocaleTimeString(), 'ok');
                 }
 
                 updateAllCells();
                 updateLogs();
 
-                console.log('Loaded from Supabase');
-
-                supabaseClient
-                    .channel('battleship_realtime')
-                    .on(
-                        'postgres_changes',
-                        {
-                            event: '*',
-                            schema: 'public',
-                            table: 'battleship_state'
-                        },
-                        (payload) => {
-                            console.log('Realtime update:', payload);
-
-                            if (payload.new) {
-                                boardStates = payload.new.board_states;
-                                shotLogs = payload.new.shot_logs;
-
-                                updateAllCells();
-                                updateLogs();
-                            }
-                        }
-                    )
-                    .subscribe();
+                subscribeToRealtime();
 
             } catch (err) {
+                setSyncStatus('LOAD CRASHED - ' + (err.message || err), 'error');
                 console.error('Load failed:', err);
             }
         }
