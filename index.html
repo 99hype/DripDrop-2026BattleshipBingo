@@ -1501,6 +1501,10 @@
         });
         
         async function saveState() {
+            console.log('saveState called');
+            console.log('Current boardStates:', boardStates);
+            console.log('Current shotLogs:', shotLogs);
+            
             if (!supabaseClient || !supabaseConnected) {
                 // Fallback to localStorage
                 localStorage.setItem('battleshipBoardStates', JSON.stringify(boardStates));
@@ -1511,22 +1515,29 @@
             
             // Save to Supabase
             try {
-                const { error } = await supabaseClient
+                console.log('Attempting to save to Supabase...');
+                const { data, error } = await supabaseClient
                     .from('battleship_state')
                     .upsert({
                         id: 1,
                         board_states: boardStates,
                         shot_logs: shotLogs,
                         last_update: new Date().toISOString()
-                    });
+                    })
+                    .select();
                 
-                if (error) throw error;
-                console.log('✅ Saved to Supabase');
+                if (error) {
+                    console.error('Supabase error object:', error);
+                    throw error;
+                }
+                console.log('✅ Saved to Supabase successfully!');
+                console.log('Supabase response:', data);
             } catch (error) {
                 console.error('Supabase save error:', error);
                 // Fallback to localStorage
                 localStorage.setItem('battleshipBoardStates', JSON.stringify(boardStates));
                 localStorage.setItem('battleshipShotLogs', JSON.stringify(shotLogs));
+                console.log('Fell back to localStorage');
             }
         }
         
