@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iron Drip/Drop 2026 Battleship Bingo - Opposing Shot Logs v7</title>
+    <title>Iron Drip/Drop 2026 Battleship Bingo - RuneScape Font Forced v32</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;600;700&display=swap" rel="stylesheet">
@@ -24,6 +24,15 @@
     </style>
     
     <style>
+
+        @font-face {
+            font-family: 'RuneScapeUF';
+            src: url('./runescape_uf.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
         :root {
             --osrs-yellow: #FFB000;
             --osrs-orange: #FF8000;
@@ -32,9 +41,13 @@
             --osrs-tan: #BFA169;
             --osrs-border: #2C2416;
             --osrs-bg: #1A1510;
-            --osrs-cell: #3E3428;
-            --osrs-cell-hover: #524534;
+            --osrs-cell: #202938;
+            --osrs-cell-hover: #2d3a4f;
             --osrs-green: #5CB85C;
+            --panel-bg: rgba(12, 17, 27, 0.92);
+            --panel-bg-2: rgba(18, 26, 40, 0.94);
+            --panel-border: #344256;
+            --gold-glow: rgba(255, 176, 0, 0.28);
             --red-team-main: #D63A35;
             --red-team-dark: #5A1715;
             --red-team-glow: rgba(214, 58, 53, 0.45);
@@ -50,8 +63,11 @@
         }
         
         body {
-            font-family: 'RuneScapeSmall', 'Cabin', sans-serif;
-            background: linear-gradient(135deg, #1a1510 0%, #2c2416 100%);
+            font-family: 'RuneScapeUF', 'RuneScapeSmall', 'Cabin', sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(58, 123, 213, 0.22), transparent 34%),
+                radial-gradient(circle at top right, rgba(214, 58, 53, 0.18), transparent 34%),
+                linear-gradient(135deg, #070b12 0%, #111827 48%, #05070b 100%);
             color: var(--osrs-tan);
             min-height: 100vh;
             padding: 20px;
@@ -87,7 +103,7 @@
         }
         
         h1 {
-            font-family: 'RuneScapeSmall', sans-serif;
+            font-family: 'RuneScapeUF', 'RuneScapeSmall', sans-serif;
             font-size: 2.8rem;
             font-weight: bold;
             color: var(--osrs-yellow);
@@ -100,7 +116,7 @@
         }
         
         .year {
-            font-family: 'RuneScapeSmall', sans-serif;
+            font-family: 'RuneScapeUF', 'RuneScapeSmall', sans-serif;
             font-size: 1.8rem;
             color: var(--osrs-tan);
             font-weight: bold;
@@ -109,7 +125,7 @@
         }
         
         .subtitle {
-            font-family: 'RuneScapeSmall', sans-serif;
+            font-family: 'RuneScapeUF', 'RuneScapeSmall', sans-serif;
             font-size: 1.6rem;
             color: var(--osrs-yellow);
             font-weight: bold;
@@ -117,12 +133,51 @@
             text-shadow: 1px 1px 0 var(--osrs-brown);
         }
         
+
+
+        body,
+        body *,
+        button,
+        .btn,
+        .board-title,
+        .team-counter,
+        .row-label,
+        .col-label,
+        .shot-log h3,
+        .log-coordinate,
+        .log-status,
+        .legend-item,
+        .completed-by-label,
+        .modal h2,
+        label,
+        .mark-option,
+        .subtitle,
+        .year,
+        h1,
+        h2,
+        h3 {
+            font-family: 'RuneScapeUF', 'RuneScapeUF', 'RuneScapeSmall', 'Cabin', sans-serif !important;
+        }
+
+        input[type="password"],
+        input[type="text"],
+        select {
+            font-family: 'RuneScapeUF', 'Cabin', sans-serif !important;
+        }
+
         .admin-controls {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1000;
             animation: fadeInRight 0.6s ease-out 0.3s both;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .global-reset-btn {
+            background: linear-gradient(180deg, #ff5555 0%, #9f1f1f 100%);
         }
         
         .btn {
@@ -252,6 +307,51 @@
             }
         }
         
+
+
+        .board-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        
+        .board-title {
+            font-size: 2.3rem;
+            margin-bottom: 22px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+
+        .team-counter {
+            margin-left: 0 !important;
+            min-width: 240px;
+            justify-content: center;
+        }
+
+        .grid-wrapper,
+        .grid,
+        .legend,
+        .shot-log {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .legend {
+            width: 92%;
+            justify-content: center;
+        }
+
+        .shot-log {
+            width: 92%;
+        }
+
         .board-wrapper {
             background: linear-gradient(180deg, #2C2416 0%, #1A1510 100%);
             padding: 30px;
@@ -263,15 +363,172 @@
         
 
 
-        .red-team-board {
-            border-color: var(--red-team-dark);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 30px var(--red-team-glow);
+
+
+        .team-counter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 12px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            line-height: 1;
+            letter-spacing: 1px;
+            vertical-align: middle;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 176, 0, 0.35);
+            color: var(--osrs-yellow);
+            text-shadow: none;
+            box-shadow: 0 0 12px rgba(0,0,0,0.28);
         }
 
-        .blue-team-board {
-            border-color: var(--blue-team-dark);
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 30px var(--blue-team-glow);
+        .red-team-title .team-counter {
+            border-color: rgba(255, 107, 102, 0.55);
+            color: #ffd1d1;
+            background: rgba(90, 23, 21, 0.45);
         }
+
+        .blue-team-title .team-counter {
+            border-color: rgba(111, 176, 255, 0.55);
+            color: #d7ebff;
+            background: rgba(20, 46, 85, 0.50);
+        }
+
+        header {
+            background: linear-gradient(180deg, rgba(10, 14, 22, 0.72), rgba(10, 14, 22, 0.18));
+            border: 1px solid rgba(255, 176, 0, 0.18);
+            border-radius: 18px;
+            padding: 24px 20px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.35), 0 0 25px var(--gold-glow);
+        }
+
+
+
+        .board-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .board-title {
+            width: 100%;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+
+        .team-counter {
+            margin-left: 0 !important;
+            min-width: 240px;
+            justify-content: center;
+        }
+
+        .grid-wrapper,
+        .grid,
+        .legend,
+        .shot-log {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .legend {
+            width: 92%;
+            justify-content: center;
+        }
+
+        .shot-log {
+            width: 92%;
+        }
+
+        .board-wrapper {
+            background:
+                linear-gradient(180deg, rgba(17, 24, 39, 0.96) 0%, rgba(7, 11, 18, 0.98) 100%);
+            border-color: var(--panel-border);
+        }
+
+        .legend,
+        .shot-log,
+        .log-entry {
+            background: rgba(5, 8, 13, 0.58);
+            border-color: rgba(255, 176, 0, 0.18);
+        }
+
+        .shot-log {
+            box-shadow: inset 0 0 18px rgba(0,0,0,0.28);
+        }
+
+        .log-entry {
+            border-radius: 9px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+        }
+
+        
+        .grid {
+            background: rgba(0,0,0,0.28);
+            border-radius: 8px;
+            padding: 2px;
+        }
+
+
+        .cell {
+            background: #182231;
+            border-color: rgba(255,255,255,0.04);
+        }
+
+        .cell:hover,
+        .cell.edit-mode:hover {
+            background: #233047;
+        }
+
+        .modal-content,
+        .mark-context-menu {
+            background: linear-gradient(180deg, #151f2f 0%, #080c13 100%);
+            border-color: #44546d;
+            box-shadow: 0 14px 50px rgba(0,0,0,0.68);
+        }
+
+        input[type="password"],
+        input[type="text"] {
+            background: #080c13;
+            border-color: #44546d;
+        }
+
+        
+
+
+        .cell:hover,
+        .cell.edit-mode:hover {
+            background: #3b3316 !important;
+            box-shadow: inset 0 0 0 2px var(--osrs-yellow) !important;
+        }
+
+        .red-team-board {
+            border-color: rgba(255, 90, 90, 0.75);
+            background:
+                radial-gradient(circle at top left, rgba(255, 70, 70, 0.16), transparent 32%),
+                linear-gradient(180deg, rgba(32, 10, 10, 0.96) 0%, rgba(10, 5, 5, 0.98) 100%);
+            box-shadow:
+                0 0 28px rgba(255, 60, 60, 0.18),
+                0 10px 28px rgba(0,0,0,0.42);
+        }
+
+
+        
+        .blue-team-board {
+            border-color: rgba(90, 170, 255, 0.75);
+            background:
+                radial-gradient(circle at top right, rgba(90, 170, 255, 0.18), transparent 32%),
+                linear-gradient(180deg, rgba(8, 18, 38, 0.96) 0%, rgba(4, 8, 18, 0.98) 100%);
+            box-shadow:
+                0 0 28px rgba(70, 140, 255, 0.18),
+                0 10px 28px rgba(0,0,0,0.42);
+        }
+
 
         .red-team-board::before {
             background: linear-gradient(135deg, #ff7a75, var(--red-team-main), var(--red-team-dark));
@@ -281,6 +538,62 @@
         .blue-team-board::before {
             background: linear-gradient(135deg, #7db7ff, var(--blue-team-main), var(--blue-team-dark));
             opacity: 0.48;
+        }
+
+
+
+        .red-team-board .cell {
+            background: #2a1b1b;
+            border: 1px solid rgba(255, 120, 120, 0.08);
+        }
+
+        
+        .red-team-board .cell:hover,
+        .red-team-board .cell.edit-mode:hover {
+            background: #3b3316 !important;
+            box-shadow: inset 0 0 0 2px var(--osrs-yellow) !important;
+        }
+
+
+        .blue-team-board .cell {
+            background: #172536;
+            border: 1px solid rgba(120, 190, 255, 0.08);
+        }
+
+        
+        .blue-team-board .cell:hover,
+        .blue-team-board .cell.edit-mode:hover {
+            background: #3b3316 !important;
+            box-shadow: inset 0 0 0 2px var(--osrs-yellow) !important;
+        }
+
+
+        .team-counter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 14px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            line-height: 1;
+            letter-spacing: 1px;
+            vertical-align: middle;
+            text-transform: uppercase;
+            box-shadow: 0 0 18px rgba(0,0,0,0.35);
+        }
+
+        .red-team-title .team-counter {
+            background: linear-gradient(180deg, rgba(130,20,20,0.95), rgba(70,10,10,0.95));
+            border: 1px solid rgba(255,120,120,0.55);
+            color: #ffdede;
+        }
+
+        .blue-team-title .team-counter {
+            background: linear-gradient(180deg, rgba(25,55,110,0.95), rgba(10,25,55,0.95));
+            border: 1px solid rgba(120,190,255,0.55);
+            color: #e1efff;
         }
 
         .red-team-title {
@@ -293,23 +606,16 @@
             text-shadow: 2px 2px 0 var(--blue-team-dark), 0 0 12px var(--blue-team-glow);
         }
 
-        .red-team-board .grid {
-            border-color: var(--red-team-dark);
-            box-shadow: inset 0 0 18px rgba(214, 58, 53, 0.18);
+        .red-team-board
+        .cell:hover {
+            background: #2b3445;
+            box-shadow: inset 0 0 0 2px var(--osrs-yellow);
+            z-index: 10;
         }
-
-        .blue-team-board .grid {
-            border-color: var(--blue-team-dark);
-            box-shadow: inset 0 0 18px rgba(58, 123, 213, 0.18);
-        }
-
-        .red-team-board .cell:hover {
-            box-shadow: inset 0 0 0 2px #ff6b66, 0 0 10px var(--red-team-glow);
-        }
-
         .blue-team-board .cell:hover {
-            box-shadow: inset 0 0 0 2px #6fb0ff, 0 0 10px var(--blue-team-glow);
+            box-shadow: inset 0 0 0 2px var(--osrs-yellow);
         }
+
 
         .red-team-board .shot-log h3,
         .red-team-board .log-coordinate,
@@ -342,7 +648,7 @@
         .completed-by-label,
         .modal h2,
         label {
-            font-family: 'RuneScapeSmall', 'Cabin', sans-serif;
+            font-family: 'RuneScapeUF', 'RuneScapeSmall', 'Cabin', sans-serif;
         }
 
         .board-wrapper::before {
@@ -366,7 +672,7 @@
         }
         
         .board-title {
-            font-family: 'RuneScapeSmall', sans-serif;
+            font-family: 'RuneScapeUF', 'RuneScapeSmall', sans-serif;
             font-size: 1.8rem;
             color: var(--osrs-yellow);
             text-shadow: 2px 2px 0 var(--osrs-brown);
@@ -391,7 +697,7 @@
         .row-labels,
         .col-labels {
             display: flex;
-            font-family: 'RuneScapeSmall', sans-serif;
+            font-family: 'RuneScapeUF', 'RuneScapeSmall', sans-serif;
             font-weight: bold;
             color: var(--osrs-yellow);
             text-shadow: 1px 1px 0 var(--osrs-brown);
@@ -454,19 +760,21 @@
             border: 3px solid var(--osrs-brown);
             border-radius: 4px;
         }
-        
         .cell {
-            background: var(--osrs-cell);
+            background: #2b2b2b;
             width: 40px;
             height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: default;
-            transition: all 0.2s;
+            transition: background 0.1s ease;
             position: relative;
             border-radius: 2px;
+            border: 1px solid rgba(0,0,0,0.35);
         }
+
+
         
         .cell:hover {
             background: var(--osrs-cell-hover);
@@ -478,11 +786,10 @@
         .cell.edit-mode {
             cursor: pointer;
         }
-        
         .cell.edit-mode:hover {
-            background: var(--osrs-cell-hover);
-            transform: scale(1.05);
+            background: #3b3316;
         }
+
         
         .cell-tooltip {
             position: absolute;
@@ -493,7 +800,7 @@
             color: var(--osrs-yellow);
             padding: 8px 12px;
             border-radius: 6px;
-            font-family: 'RuneScapeSmall', sans-serif;
+            font-family: 'RuneScapeUF', 'RuneScapeSmall', sans-serif;
             font-size: 13px;
             font-weight: bold;
             white-space: nowrap;
@@ -522,7 +829,6 @@
         
         .cell.hit {
             background: var(--osrs-red);
-            animation: hitPulse 0.5s ease-out;
         }
         
         .cell.miss {
@@ -539,7 +845,6 @@
             stroke: white;
             stroke-width: 3;
             fill: none;
-            animation: drawCircle 0.4s ease-out forwards;
         }
         
         .miss svg path {
@@ -547,7 +852,6 @@
             stroke-width: 3;
             stroke-linecap: round;
             fill: none;
-            animation: drawX 0.4s ease-out forwards;
         }
         
         .legend {
@@ -655,7 +959,7 @@
             padding: 12px 16px;
             cursor: pointer;
             color: var(--osrs-tan);
-            font-family: 'RuneScapeSmall', sans-serif;
+            font-family: 'RuneScapeUF', 'RuneScapeSmall', sans-serif;
             font-weight: bold;
             font-size: 14px;
             border-radius: 4px;
@@ -702,7 +1006,7 @@
         }
         
         .shot-log h3 {
-            font-family: 'RuneScapeSmall', sans-serif;
+            font-family: 'RuneScapeUF', 'RuneScapeSmall', sans-serif;
             font-size: 1.3rem;
             color: var(--osrs-yellow);
             text-shadow: 1px 1px 0 var(--osrs-brown);
@@ -731,7 +1035,7 @@
         }
         
         .log-coordinate {
-            font-family: 'RuneScapeSmall', sans-serif;
+            font-family: 'RuneScapeUF', 'RuneScapeSmall', sans-serif;
             font-weight: bold;
             font-size: 15px;
             color: var(--osrs-yellow);
@@ -929,15 +1233,13 @@
         
         <div class="admin-controls">
             <button class="btn" id="adminBtn">Host Mode</button>
+            <button class="btn global-reset-btn" id="globalResetBtn" onclick="showGlobalResetModal()" style="display: none;">Reset All</button>
         </div>
         
         <div class="boards-container">
             <div class="board-wrapper red-team-board">
                 <div class="board-header">
-                    <h2 class="board-title red-team-title">RED TEAM</h2>
-                    <div class="board-controls" style="display: none;">
-                        <button class="btn" onclick="showResetModal('team1')">Reset Board</button>
-                    </div>
+                    <h2 class="board-title red-team-title">RED TEAM <span class="team-counter" id="redTeamCounter">0 tiles</span></h2>
                 </div>
                 <div class="grid-container">
                     <div class="col-labels">
@@ -1001,10 +1303,7 @@
             
             <div class="board-wrapper blue-team-board">
                 <div class="board-header">
-                    <h2 class="board-title blue-team-title">BLUE TEAM</h2>
-                    <div class="board-controls" style="display: none;">
-                        <button class="btn" onclick="showResetModal('team2')">Reset Board</button>
-                    </div>
+                    <h2 class="board-title blue-team-title">BLUE TEAM <span class="team-counter" id="blueTeamCounter">0 tiles</span></h2>
                 </div>
                 <div class="grid-container">
                     <div class="col-labels">
@@ -1082,23 +1381,26 @@
             </div>
         </div>
     </div>
-    
-    <div class="modal" id="resetModal">
-        <div class="modal-content">
-            <h2>Reset Board</h2>
-            <p style="color: var(--osrs-tan); margin-bottom: 20px;">Enter password to reset <span id="resetTeamName"></span></p>
-            <div class="form-group">
-                <label for="resetPasswordInput">Password</label>
-                <input type="password" id="resetPasswordInput" placeholder="Enter password">
-                <div class="error-message" id="resetErrorMessage">Incorrect password</div>
-            </div>
             <div class="modal-buttons">
-                <button class="btn btn-secondary" onclick="closeResetModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="confirmReset()">Reset</button>
+                <button class="btn btn-secondary" onclick="closeCaptainModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="checkCaptainPassword()">Login</button>
             </div>
         </div>
     </div>
-    
+
+    <div class="modal" id="resetModal">
+        <div class="modal-content">
+            <h2>Reset Everything?</h2>
+            <p style="color: var(--osrs-tan); margin-bottom: 20px;">
+                This will clear both boards, both shot logs, and all completed-by names for every viewer.
+            </p>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeResetModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmResetAll()">Yes, Reset All</button>
+            </div>
+        </div>
+    </div>
+
 
 
     <div class="modal" id="completedByModal">
@@ -1141,6 +1443,11 @@
         // Supabase Configuration (FREE and works better than Firebase)
         const SUPABASE_URL = 'https://iicrczlhiskulxgmoyvx.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_EhZn76ph551WwdCMIdtfrg_Oj20JBDG';
+
+        // Discord Webhook
+        // Paste your Discord webhook URL between the quotes below.
+        // Example: const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/...';
+        const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1504557763202912316/wBK0JHkzZWUoU51TJrd9ZF-SdP9Jo8maOTxqteIG-L6BOXVml1UsZC9wIp9m6EcX1tol';
         
         // Initialize Supabase
         let supabaseClient;
@@ -1241,7 +1548,7 @@
         const ROWS = 12;
         const COLS = 13;
         
-        // Event authentication token
+        // Event host authentication token
         const AUTH_TOKEN = '8ea19e6b4a08b0f15e19fd84a93d4e1781e5a393b25ed444c0cd495e07b58118';
         
         // Utility function for credential verification
@@ -1487,6 +1794,104 @@
         function getShootingTeam(targetBoardTeam) {
             return targetBoardTeam === 'team1' ? 'team2' : 'team1';
         }
+
+
+        function getTeamDisplayName(team) {
+            return team === 'team1' ? 'Red Team' : 'Blue Team';
+        }
+
+        function getDiscordTimestamp(date) {
+            const unixSeconds = Math.floor(date.getTime() / 1000);
+            return `<t:${unixSeconds}:F>`;
+        }
+
+        async function sendDiscordTileUpdate({ shootingTeam, coordinate, status, completedBy, timestamp }) {
+            if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL.trim() === '') {
+                console.log('Discord webhook not configured. Skipping Discord notification.');
+                return;
+            }
+
+            const shooterName = getTeamDisplayName(shootingTeam);
+            const cleanStatus = String(status || '').toUpperCase();
+            const cleanName = completedBy && completedBy.trim() ? completedBy.trim() : 'Unknown';
+            const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+            const discordTimestamp = getDiscordTimestamp(date);
+            const plainTimestamp = date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+
+            const message = `${shooterName} Shoots Tile ${coordinate} - ${cleanStatus} - Completed by "${cleanName}" - ${discordTimestamp} (${plainTimestamp})`;
+
+            try {
+                const response = await fetch(DISCORD_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: 'Battleship Bingo',
+                        embeds: [
+                            {
+                                title: `${shooterName.toUpperCase()} FIRES ON ${coordinate}`,
+                                description:
+                                    cleanStatus === 'HIT'
+                                        ? '💥 **DIRECT HIT!**'
+                                        : '🌊 **SHOT MISSED!**',
+
+                                color:
+                                    shootingTeam === 'team1'
+                                        ? 0xff4444
+                                        : 0x3b82f6,
+
+                                fields: [
+                                    {
+                                        name: '🎯 Result',
+                                        value: cleanStatus,
+                                        inline: true
+                                    },
+                                    {
+                                        name: '⚔️ Completed By',
+                                        value: cleanName,
+                                        inline: true
+                                    },
+                                    {
+                                        name: '🕒 Timestamp',
+                                        value: discordTimestamp,
+                                        inline: false
+                                    }
+                                ],
+
+                                footer: {
+                                    text: 'DripDrop 2026 Battleship Bingo'
+                                },
+
+                                timestamp: date.toISOString()
+                            }
+                        ],
+                        allowed_mentions: {
+                            parse: []
+                        }
+                    })
+                });
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    console.error('Discord webhook failed:', response.status, text);
+                    setSyncStatus('saved, but Discord webhook failed: ' + response.status, 'warn');
+                } else {
+                    console.log('Discord webhook sent:', message);
+                }
+            } catch (err) {
+                console.error('Discord webhook error:', err);
+                setSyncStatus('saved, but Discord webhook crashed: ' + (err.message || err), 'warn');
+            }
+        }
         
         // Initialize boards
         function initializeBoards() {
@@ -1495,7 +1900,6 @@
             loadState();
             updateLogs();
         }
-        
         function createGrid(gridId, team) {
             const grid = document.getElementById(gridId);
             grid.innerHTML = '';
@@ -1579,7 +1983,7 @@
                 return;
             }
 
-            if (markType === 'clear') {
+            if (markType === 'clear' || markType === null) {
                 completeMark(team, index, null, '');
                 return;
             }
@@ -1588,23 +1992,37 @@
             const coordinate = getCoordinate(index);
             const existingName = tileDetails[team] && tileDetails[team][coordinate] ? tileDetails[team][coordinate].completedBy || '' : '';
 
-            document.getElementById('completedByTitle').textContent = markType === 'hit' ? 'Mark Hit' : 'Mark Miss';
-            document.getElementById('completedByCoordinate').textContent = coordinate;
-            document.getElementById('completedByInput').value = existingName;
-            document.getElementById('completedByModal').classList.add('active');
+            const titleEl = document.getElementById('completedByTitle');
+            const coordEl = document.getElementById('completedByCoordinate');
+            const inputEl = document.getElementById('completedByInput');
+            const modalEl = document.getElementById('completedByModal');
 
-            setTimeout(() => document.getElementById('completedByInput').focus(), 100);
+            if (!titleEl || !coordEl || !inputEl || !modalEl) {
+                console.error('Completed By modal elements missing. Applying mark without name.');
+                completeMark(team, index, markType, '');
+                return;
+            }
+
+            titleEl.textContent = markType === 'hit' ? 'Mark Hit' : 'Mark Miss';
+            coordEl.textContent = coordinate;
+            inputEl.value = existingName;
+            modalEl.classList.add('active');
+
+            setTimeout(() => inputEl.focus(), 100);
         }
 
         function closeCompletedByModal() {
-            document.getElementById('completedByModal').classList.remove('active');
+            const modalEl = document.getElementById('completedByModal');
+            if (modalEl) modalEl.classList.remove('active');
             pendingMark = null;
         }
 
         function confirmCompletedBy() {
             if (!pendingMark) return;
 
-            const completedBy = document.getElementById('completedByInput').value.trim();
+            const inputEl = document.getElementById('completedByInput');
+            const completedBy = inputEl ? inputEl.value.trim() : '';
+
             completeMark(pendingMark.team, pendingMark.index, pendingMark.markType, completedBy);
             closeCompletedByModal();
         }
@@ -1634,15 +2052,14 @@
 
             const coordinate = getCoordinate(index);
 
-            // Remove this coordinate from both logs so moving/clearing stays clean
             ['team1', 'team2'].forEach(logTeam => {
                 if (!shotLogs[logTeam]) shotLogs[logTeam] = [];
                 shotLogs[logTeam] = shotLogs[logTeam].filter(log => log.coordinate !== coordinate || log.targetBoard !== team);
             });
 
-            if (newState !== null) {
-                const timestamp = new Date();
+            let timestamp = new Date();
 
+            if (newState !== null) {
                 shotLogs[shootingTeam].unshift({
                     coordinate,
                     status: newState,
@@ -1665,6 +2082,16 @@
             updateCell(team, index, newState);
             updateLogs();
             saveState();
+
+            if (newState === 'hit' || newState === 'miss') {
+                sendDiscordTileUpdate({
+                    shootingTeam,
+                    coordinate,
+                    status: newState,
+                    completedBy: completedBy || '',
+                    timestamp: timestamp
+                });
+            }
         }
         function updateCell(team, index, state) {
             const grid = document.getElementById(team + 'Grid');
@@ -1702,7 +2129,26 @@
             });
         }
         
+
+        function updateCounters() {
+            const redCounter = document.getElementById('redTeamCounter');
+            const blueCounter = document.getElementById('blueTeamCounter');
+
+            const redCount = Array.isArray(shotLogs.team1) ? shotLogs.team1.length : 0;
+            const blueCount = Array.isArray(shotLogs.team2) ? shotLogs.team2.length : 0;
+
+            if (redCounter) {
+                redCounter.textContent = `${redCount} ${redCount === 1 ? 'TILE' : 'TILES'} COMPLETED`;
+            }
+
+            if (blueCounter) {
+                blueCounter.textContent = `${blueCount} ${blueCount === 1 ? 'TILE' : 'TILES'} COMPLETED`;
+            }
+        }
+
         function updateLogs() {
+            updateCounters();
+
             ['team1', 'team2'].forEach(team => {
                 const logContainer = document.getElementById(team + 'Log');
                 
@@ -1741,71 +2187,35 @@
             });
         }
         
-        // Reset board modal functions
-        let resetTeam = null;
-        
-        function showResetModal(team) {
+        // Global reset modal functions
+        function showGlobalResetModal() {
             if (!isEditMode) return;
-            resetTeam = team;
-            const teamName = team === 'team1' ? 'RED TEAM' : 'BLUE TEAM';
-            document.getElementById('resetTeamName').textContent = teamName;
             document.getElementById('resetModal').classList.add('active');
-            document.getElementById('resetPasswordInput').value = '';
-            document.getElementById('resetErrorMessage').classList.remove('active');
-            setTimeout(() => document.getElementById('resetPasswordInput').focus(), 100);
         }
-        
+
         function closeResetModal() {
             document.getElementById('resetModal').classList.remove('active');
-            resetTeam = null;
         }
-        
-        async function confirmReset() {
-            const password = document.getElementById('resetPasswordInput').value;
-            const hashedInput = await verifyCredentials(password);
-            
-            if (hashedInput === AUTH_TOKEN) {
-                if (resetTeam) {
-                    boardStates[resetTeam] = Array(ROWS * COLS).fill(null);
-                    shotLogs[resetTeam] = [];
-                    tileDetails[resetTeam] = {};
-                    updateAllCells();
-                    updateLogs();
-                    saveState();
-                }
-                closeResetModal();
-            } else {
-                document.getElementById('resetErrorMessage').classList.add('active');
-                document.getElementById('resetPasswordInput').value = '';
-                document.getElementById('resetPasswordInput').focus();
-            }
+
+        function confirmResetAll() {
+            if (!isEditMode) return;
+
+            boardStates = defaultBoardStates();
+            shotLogs = defaultShotLogs();
+            tileDetails = defaultTileDetails();
+
+            updateAllCells();
+            updateLogs();
+            saveState();
+            closeResetModal();
         }
-        
-        document.getElementById('resetPasswordInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                confirmReset();
-            }
-        });
-        
+
         document.getElementById('resetModal').addEventListener('click', (e) => {
             if (e.target.id === 'resetModal') {
                 closeResetModal();
             }
         });
 
-
-        document.getElementById('completedByInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                confirmCompletedBy();
-            }
-        });
-
-        document.getElementById('completedByModal').addEventListener('click', (e) => {
-            if (e.target.id === 'completedByModal') {
-                closeCompletedByModal();
-            }
-        });
-        
 
         function subscribeToRealtime() {
             if (!supabaseClient || realtimeSubscribed) return;
@@ -1859,6 +2269,29 @@
                 })
                 .subscribe();
         }
+
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const completedByInput = document.getElementById('completedByInput');
+            const completedByModal = document.getElementById('completedByModal');
+
+            if (completedByInput) {
+                completedByInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        confirmCompletedBy();
+                    }
+                });
+            }
+
+            if (completedByModal) {
+                completedByModal.addEventListener('click', (e) => {
+                    if (e.target.id === 'completedByModal') {
+                        closeCompletedByModal();
+                    }
+                });
+            }
+        });
 
         async function saveState() {
             if (!supabaseClient || !supabaseConnected) {
@@ -1980,7 +2413,6 @@
                 console.error('Load failed:', err);
             }
         }
-        
         // Authentication
         document.getElementById('adminBtn').addEventListener('click', () => {
             if (isEditMode) {
@@ -2030,10 +2462,7 @@
             document.getElementById('adminBtn').textContent = 'Exit Host Mode';
             document.getElementById('adminBtn').style.background = 'linear-gradient(180deg, #5CB85C 0%, #449D44 100%)';
             document.getElementById('editBanner').classList.add('active');
-            
-            document.querySelectorAll('.board-controls').forEach(el => {
-                el.style.display = 'flex';
-            });
+            document.getElementById('globalResetBtn').style.display = 'inline-block';
             
             try {
                 updateAllCells();
@@ -2056,10 +2485,7 @@
             document.getElementById('adminBtn').style.background = '';
             document.getElementById('editBanner').classList.remove('active');
             document.getElementById('markContextMenu').classList.remove('active');
-            
-            document.querySelectorAll('.board-controls').forEach(el => {
-                el.style.display = 'none';
-            });
+            document.getElementById('globalResetBtn').style.display = 'none';
             
             updateAllCells();
             setHostModeStatus(false);
