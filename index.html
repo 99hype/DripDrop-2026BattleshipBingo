@@ -981,11 +981,8 @@
     </div>
 
     <!-- Firebase SDK from jsDelivr -->
-    <!-- Temporarily disabled due to CORS issues with file:// protocol -->
-    <!--
     <script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-app-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-database-compat.js"></script>
-    -->
 
     <script>
         // Firebase Configuration
@@ -1290,24 +1287,37 @@
         let contextMenuIndex = null;
         
         function showContextMenu(event, team, index) {
+            console.log('showContextMenu called for', team, index);
             const menu = document.getElementById('markContextMenu');
             contextMenuTeam = team;
             contextMenuIndex = index;
             
-            // Position near mouse
-            menu.style.left = event.pageX + 'px';
-            menu.style.top = event.pageY + 'px';
+            // Position near mouse with offset to avoid immediate re-trigger
+            const x = event.clientX + window.pageXOffset;
+            const y = event.clientY + window.pageYOffset;
+            
+            menu.style.left = x + 'px';
+            menu.style.top = y + 'px';
             menu.classList.add('active');
+            
+            console.log('Context menu shown at', x, y);
+            
+            // Stop the click from immediately closing the menu
+            event.stopPropagation();
         }
         
         // Hide context menu when clicking outside
-        document.addEventListener('click', () => {
-            document.getElementById('markContextMenu').classList.remove('active');
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('markContextMenu');
+            if (menu && !menu.contains(e.target)) {
+                menu.classList.remove('active');
+            }
         });
         
         // Handle context menu selection
         document.querySelectorAll('.mark-option').forEach(option => {
             option.addEventListener('click', (e) => {
+                console.log('Mark option clicked:', option.dataset.mark);
                 e.stopPropagation();
                 const markType = option.dataset.mark;
                 if (contextMenuTeam && contextMenuIndex !== null) {
