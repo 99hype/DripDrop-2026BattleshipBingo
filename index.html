@@ -980,40 +980,30 @@
         <div class="mark-option clear" data-mark="clear">⬜ Clear Cell</div>
     </div>
 
-    <!-- Firebase SDK - Official Google CDN -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <!-- Supabase SDK for real-time database -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // Firebase Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyC4WisVANfmJ-xNavAsc3bZRHfnImIB1oc",
-            authDomain: "battleship-bingo-dripdrop.firebaseapp.com",
-            databaseURL: "https://battleship-bingo-dripdrop-default-rtdb.firebaseio.com",
-            projectId: "battleship-bingo-dripdrop",
-            storageBucket: "battleship-bingo-dripdrop.firebasestorage.app",
-            messagingSenderId: "508477486431",
-            appId: "1:508477486431:web:a9b01feb2a7f58955572ea"
-        };
+        // Supabase Configuration (FREE and works better than Firebase)
+        const SUPABASE_URL = 'https://iicrezlhiskulxgmoyvx.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlpY3JlemxoaXNrdWx4Z21veXZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc1NDE4MzYsImV4cCI6MjA2MzExNzgzNn0.sb_publishable_EhZn76ph551WwdCMIdtfrg_Oj20JBDG';
         
-        // Initialize Firebase
-        let database;
-        let firebaseConnected = false;
+        // Initialize Supabase
+        let supabaseClient;
+        let supabaseConnected = false;
         
         try {
-            if (typeof firebase !== 'undefined') {
-                firebase.initializeApp(firebaseConfig);
-                database = firebase.database();
-                firebaseConnected = true;
-                console.log('🔥 Firebase connected successfully!');
+            if (typeof window.supabase !== 'undefined' && SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+                const { createClient } = window.supabase;
+                supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+                supabaseConnected = true;
+                console.log('✅ Supabase connected successfully!');
             } else {
-                console.warn('⚠️ Firebase not loaded. Using local-only mode.');
-                alert('Firebase not available. Board will work locally but won\'t sync across devices.');
+                console.warn('⚠️ Supabase not configured. Using local-only mode.');
             }
         } catch (error) {
-            console.error('❌ Firebase initialization error:', error);
-            firebaseConnected = false;
-            alert('Firebase connection failed. Board will work locally but won\'t sync across devices.');
+            console.error('❌ Supabase initialization error:', error);
+            supabaseConnected = false;
         }
         
         // Configuration
@@ -1204,35 +1194,43 @@
             team2: []
         };
         
-        // Track host mode status in Firebase
-        function setHostModeStatus(active) {
-            if (!database || !firebaseConnected) {
+        // Track host mode status in Supabase
+        async function setHostModeStatus(active) {
+            if (!supabaseClient || !supabaseConnected) {
                 console.log('Host mode:', active ? 'ACTIVE' : 'INACTIVE', '(local only)');
                 return;
             }
-            database.ref('hostMode').set({
-                active: active,
-                timestamp: Date.now()
-            }).catch(error => {
+            try {
+                await supabaseClient
+                    .from('host_mode')
+                    .upsert({
+                        id: 1,
+                        active: active,
+                        timestamp: new Date().toISOString()
+                    });
+            } catch (error) {
                 console.error('Error setting host mode:', error);
-            });
+            }
         }
         
         // Listen for host mode changes
         function listenForHostMode() {
-            if (!database || !firebaseConnected) return;
+            if (!supabaseClient || !supabaseConnected) return;
             
-            database.ref('hostMode').on('value', (snapshot) => {
-                const data = snapshot.val();
-                const hostActiveBanner = document.getElementById('hostActiveBanner');
-                
-                if (data && data.active && !isEditMode) {
-                    // Someone else is in host mode
-                    hostActiveBanner.classList.add('active');
-                } else {
-                    hostActiveBanner.classList.remove('active');
-                }
-            });
+            supabaseClient
+                .channel('host_mode_changes')
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'host_mode' },
+                    (payload) => {
+                        const hostActiveBanner = document.getElementById('hostActiveBanner');
+                        if (payload.new && payload.new.active && !isEditMode) {
+                            hostActiveBanner.classList.add('active');
+                        } else {
+                            hostActiveBanner.classList.remove('active');
+                        }
+                    }
+                )
+                .subscribe();
         }
         
         // Helper function to get coordinate from index
@@ -1485,31 +1483,39 @@
             }
         });
         
-        function saveState() {
-            if (!database || !firebaseConnected) {
-                // Fallback to localStorage if Firebase not available
-                localStorage.setItem('battleshipBoardStates', JSON.stringify(boardStates));
-                localStorage.setItem('battleshipShotLogs', JSON.stringify(shotLogs));
-                console.log('Saved to localStorage (Firebase not available)');
-                return;
-            }
-            
-            // Save to Firebase Realtime Database
-            database.ref('battleship').set({
-                boardStates: boardStates,
-                shotLogs: shotLogs,
-                lastUpdate: Date.now()
-            }).catch(error => {
-                console.error('Firebase save error:', error);
+        async function saveState() {
+            if (!supabaseClient || !supabaseConnected) {
                 // Fallback to localStorage
                 localStorage.setItem('battleshipBoardStates', JSON.stringify(boardStates));
                 localStorage.setItem('battleshipShotLogs', JSON.stringify(shotLogs));
-            });
+                console.log('Saved to localStorage (Supabase not available)');
+                return;
+            }
+            
+            // Save to Supabase
+            try {
+                const { error } = await supabaseClient
+                    .from('battleship_state')
+                    .upsert({
+                        id: 1,
+                        board_states: boardStates,
+                        shot_logs: shotLogs,
+                        last_update: new Date().toISOString()
+                    });
+                
+                if (error) throw error;
+                console.log('✅ Saved to Supabase');
+            } catch (error) {
+                console.error('Supabase save error:', error);
+                // Fallback to localStorage
+                localStorage.setItem('battleshipBoardStates', JSON.stringify(boardStates));
+                localStorage.setItem('battleshipShotLogs', JSON.stringify(shotLogs));
+            }
         }
         
-        function loadState() {
-            if (!database || !firebaseConnected) {
-                // Fallback to localStorage if Firebase not available
+        async function loadState() {
+            if (!supabaseClient || !supabaseConnected) {
+                // Fallback to localStorage
                 const saved = localStorage.getItem('battleshipBoardStates');
                 if (saved) {
                     boardStates = JSON.parse(saved);
@@ -1522,26 +1528,50 @@
                 
                 updateAllCells();
                 updateLogs();
-                console.log('Loaded from localStorage (Firebase not available)');
+                console.log('Loaded from localStorage (Supabase not available)');
                 return;
             }
             
-            // Listen for changes in Firebase
-            database.ref('battleship').on('value', (snapshot) => {
-                const data = snapshot.val();
+            // Load initial state from Supabase
+            try {
+                const { data, error } = await supabaseClient
+                    .from('battleship_state')
+                    .select('*')
+                    .eq('id', 1)
+                    .single();
+                
                 if (data) {
-                    boardStates = data.boardStates || {
+                    boardStates = data.board_states || {
                         team1: Array(ROWS * COLS).fill(null),
                         team2: Array(ROWS * COLS).fill(null)
                     };
-                    shotLogs = data.shotLogs || {
+                    shotLogs = data.shot_logs || {
                         team1: [],
                         team2: []
                     };
                     updateAllCells();
                     updateLogs();
                 }
-            });
+            } catch (error) {
+                console.log('No existing state found, starting fresh');
+            }
+            
+            // Subscribe to real-time changes
+            supabaseClient
+                .channel('battleship_changes')
+                .on('postgres_changes', 
+                    { event: '*', schema: 'public', table: 'battleship_state' },
+                    (payload) => {
+                        console.log('Real-time update received!', payload);
+                        if (payload.new) {
+                            boardStates = payload.new.board_states;
+                            shotLogs = payload.new.shot_logs;
+                            updateAllCells();
+                            updateLogs();
+                        }
+                    }
+                )
+                .subscribe();
         }
         
         // Authentication
