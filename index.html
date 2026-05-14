@@ -1502,106 +1502,136 @@
         
         async function saveState() {
             console.log('saveState called');
-            console.log('Current boardStates:', boardStates);
-            console.log('Current shotLogs:', shotLogs);
-            
-            if (!supabaseClient || !supabaseConnected) {
-                // Fallback to localStorage
-                localStorage.setItem('battleshipBoardStates', JSON.stringify(boardStates));
-                localStorage.setItem('battleshipShotLogs', JSON.stringify(shotLogs));
-                console.log('Saved to localStorage (Supabase not available)');
-                return;
-            }
-            
-            // Save to Supabase
-            try {
-                console.log('Attempting to save to Supabase...');
-                const { data, error } = await supabaseClient
-                    .from('battleship_state')
-                    .upsert({
-                        id: 1,
-                        board_states: boardStates,
-                        shot_logs: shotLogs,
-                        last_update: new Date().toISOString()
-                    })
-                    .select();
-                
-                if (error) {
-                    console.error('Supabase error object:', error);
-                    throw error;
+
+            // Supabase is the source of truth for all viewers.
+            // localStorage is only a fallback for offline/local testing.
+            if (supabaseClient && supabaseConnected) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('battleship_state')
+                        .upsert({
+                            id: 1,
+                            board_states: boardStates,
+                            shot_logs: shotLogs,
+                            last_update: new Date().toISOString()
+                        }, { onConflict: 'id' });
+
+                    if (error) throw error;
+
+                    localStorage.setItem('battleshipBoardStates', JSON.stringify(boardStates));
+                    localStorage.setItem('battleshipShotLogs', JSON.stringify(shotLogs));
+                    console.log('✅ Saved to Supabase and local fallback');
+                    return;
+                } catch (error) {
+                    console.error('❌ Supabase save failed; saved local fallback only:', error.message);
                 }
-                console.log('✅ Saved to Supabase successfully!');
-                console.log('Supabase response:', data);
-            } catch (error) {
-                console.error('Supabase save error:', error);
-                // Fallback to localStorage
-                localStorage.setItem('battleshipBoardStates', JSON.stringify(boardStates));
-                localStorage.setItem('battleshipShotLogs', JSON.stringify(shotLogs));
-                console.log('Fell back to localStorage');
             }
+
+            localStorage.setItem('battleshipBoardStates', JSON.stringify(boardStates));
+            localStorage.setItem('battleshipShotLogs', JSON.stringify(shotLogs));
+            console.log('✅ Saved to localStorage fallback');
         }
-        
+
+        function normalizeRemoteState(data) {
+            if (!data) return false;
+
+            boardStates = {
+                team1: Array.isArray(data.board_states?.team1) ? data.board_states.team1 : Array(ROWS * COLS).fill(null),
+                team2: Array.isArray(data.board_states?.team2) ? data.board_states.team2 : Array(ROWS * COLS).fill(null)
+            };
+
+            shotLogs = {
+                team1: Array.isArray(data.shot_logs?.team1) ? data.shot_logs.team1 : [],
+                team2: Array.isArray(data.shot_logs?.team2) ? data.shot_logs.team2 : []
+            };
+
+            localStorage.setItem('battleshipBoardStates', JSON.stringify(boardStates));
+            localStorage.setItem('battleshipShotLogs', JSON.stringify(shotLogs));
+            updateAllCells();
+            updateLogs();
+            return true;
+        }
+
+        function loadLocalFallback() {
+            const saved = localStorage.getItem('battleshipBoardStates');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    boardStates = {
+                        team1: Array.isArray(parsed.team1) ? parsed.team1 : Array(ROWS * COLS).fill(null),
+                        team2: Array.isArray(parsed.team2) ? parsed.team2 : Array(ROWS * COLS).fill(null)
+                    };
+                } catch (error) {
+                    console.warn('Could not parse local board state:', error.message);
+                }
+            }
+
+            const savedLogs = localStorage.getItem('battleshipShotLogs');
+            if (savedLogs) {
+                try {
+                    const parsedLogs = JSON.parse(savedLogs);
+                    shotLogs = {
+                        team1: Array.isArray(parsedLogs.team1) ? parsedLogs.team1 : [],
+                        team2: Array.isArray(parsedLogs.team2) ? parsedLogs.team2 : []
+                    };
+                } catch (error) {
+                    console.warn('Could not parse local shot logs:', error.message);
+                }
+            }
+
+            updateAllCells();
+            updateLogs();
+            console.log('✅ Loaded local fallback');
+        }
+
         async function loadState() {
-            if (!supabaseClient || !supabaseConnected) {
-                // Fallback to localStorage
-                const saved = localStorage.getItem('battleshipBoardStates');
-                if (saved) {
-                    boardStates = JSON.parse(saved);
+            if (supabaseClient && supabaseConnected) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('battleship_state')
+                        .select('board_states, shot_logs, last_update')
+                        .eq('id', 1)
+                        .maybeSingle();
+
+                    if (error) throw error;
+
+                    if (data && normalizeRemoteState(data)) {
+                        console.log('✅ Loaded latest state from Supabase:', data.last_update);
+                    } else {
+                        console.log('No Supabase state found yet; loading local fallback');
+                        loadLocalFallback();
+                    }
+                } catch (error) {
+                    console.error('❌ Supabase load failed; loading local fallback:', error.message);
+                    loadLocalFallback();
                 }
-                
-                const savedLogs = localStorage.getItem('battleshipShotLogs');
-                if (savedLogs) {
-                    shotLogs = JSON.parse(savedLogs);
-                }
-                
-                updateAllCells();
-                updateLogs();
-                console.log('Loaded from localStorage (Supabase not available)');
+
+                // Subscribe after initial load. Viewers update whenever the host saves.
+                const channel = supabaseClient
+                    .channel('battleship_state_changes')
+                    .on('postgres_changes',
+                        { event: '*', schema: 'public', table: 'battleship_state', filter: 'id=eq.1' },
+                        (payload) => {
+                            console.log('✅ Real-time board update received:', payload);
+                            if (payload.new) {
+                                normalizeRemoteState(payload.new);
+                            }
+                        }
+                    )
+                    .subscribe((status, err) => {
+                        console.log('Battleship realtime subscription status:', status, err || '');
+                    });
+
+                window.addEventListener('beforeunload', () => {
+                    supabaseClient.removeChannel(channel);
+                });
+
                 return;
             }
-            
-            // Load initial state from Supabase
-            try {
-                const { data, error } = await supabaseClient
-                    .from('battleship_state')
-                    .select('*')
-                    .eq('id', 1)
-                    .single();
-                
-                if (data) {
-                    boardStates = data.board_states || {
-                        team1: Array(ROWS * COLS).fill(null),
-                        team2: Array(ROWS * COLS).fill(null)
-                    };
-                    shotLogs = data.shot_logs || {
-                        team1: [],
-                        team2: []
-                    };
-                    updateAllCells();
-                    updateLogs();
-                }
-            } catch (error) {
-                console.log('No existing state found, starting fresh');
-            }
-            
-            // Subscribe to real-time changes
-            supabaseClient
-                .channel('battleship_changes')
-                .on('postgres_changes', 
-                    { event: '*', schema: 'public', table: 'battleship_state' },
-                    (payload) => {
-                        console.log('Real-time update received!', payload);
-                        if (payload.new) {
-                            boardStates = payload.new.board_states;
-                            shotLogs = payload.new.shot_logs;
-                            updateAllCells();
-                            updateLogs();
-                        }
-                    }
-                )
-                .subscribe();
+
+            loadLocalFallback();
         }
-        
+
         // Authentication
         document.getElementById('adminBtn').addEventListener('click', () => {
             if (isEditMode) {
