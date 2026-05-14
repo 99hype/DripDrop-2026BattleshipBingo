@@ -1326,7 +1326,18 @@
         });
         
         function applyMark(team, index, markType) {
-            if (!isEditMode) return;
+            console.log('applyMark called:', { team, index, markType, isEditMode });
+            console.log('shotLogs:', shotLogs);
+            
+            if (!isEditMode) {
+                console.log('Not in edit mode, returning');
+                return;
+            }
+            
+            // Ensure shotLogs exists for this team
+            if (!shotLogs[team]) {
+                shotLogs[team] = [];
+            }
             
             let newState;
             
@@ -1337,6 +1348,8 @@
             } else {
                 newState = null;
             }
+            
+            console.log('New state:', newState);
             
             // Add to shot log only if changing to hit or miss
             if (newState !== null) {
@@ -1359,9 +1372,13 @@
             }
             
             boardStates[team][index] = newState;
+            console.log('Updating cell...');
             updateCell(team, index, newState);
+            console.log('Updating logs...');
             updateLogs();
+            console.log('Saving state...');
             saveState();
+            console.log('Apply mark complete!');
         }
         
         function updateCell(team, index, state) {
