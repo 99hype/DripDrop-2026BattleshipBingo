@@ -35,6 +35,12 @@
             --osrs-cell: #3E3428;
             --osrs-cell-hover: #524534;
             --osrs-green: #5CB85C;
+            --red-team-main: #D63A35;
+            --red-team-dark: #5A1715;
+            --red-team-glow: rgba(214, 58, 53, 0.45);
+            --blue-team-main: #3A7BD5;
+            --blue-team-dark: #142E55;
+            --blue-team-glow: rgba(58, 123, 213, 0.45);
         }
         
         * {
@@ -44,7 +50,7 @@
         }
         
         body {
-            font-family: 'Cabin', sans-serif;
+            font-family: 'RuneScapeSmall', 'Cabin', sans-serif;
             background: linear-gradient(135deg, #1a1510 0%, #2c2416 100%);
             color: var(--osrs-tan);
             min-height: 100vh;
@@ -255,6 +261,90 @@
             position: relative;
         }
         
+
+
+        .red-team-board {
+            border-color: var(--red-team-dark);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 30px var(--red-team-glow);
+        }
+
+        .blue-team-board {
+            border-color: var(--blue-team-dark);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 30px var(--blue-team-glow);
+        }
+
+        .red-team-board::before {
+            background: linear-gradient(135deg, #ff7a75, var(--red-team-main), var(--red-team-dark));
+            opacity: 0.48;
+        }
+
+        .blue-team-board::before {
+            background: linear-gradient(135deg, #7db7ff, var(--blue-team-main), var(--blue-team-dark));
+            opacity: 0.48;
+        }
+
+        .red-team-title {
+            color: #ff6b66;
+            text-shadow: 2px 2px 0 var(--red-team-dark), 0 0 12px var(--red-team-glow);
+        }
+
+        .blue-team-title {
+            color: #6fb0ff;
+            text-shadow: 2px 2px 0 var(--blue-team-dark), 0 0 12px var(--blue-team-glow);
+        }
+
+        .red-team-board .grid {
+            border-color: var(--red-team-dark);
+            box-shadow: inset 0 0 18px rgba(214, 58, 53, 0.18);
+        }
+
+        .blue-team-board .grid {
+            border-color: var(--blue-team-dark);
+            box-shadow: inset 0 0 18px rgba(58, 123, 213, 0.18);
+        }
+
+        .red-team-board .cell:hover {
+            box-shadow: inset 0 0 0 2px #ff6b66, 0 0 10px var(--red-team-glow);
+        }
+
+        .blue-team-board .cell:hover {
+            box-shadow: inset 0 0 0 2px #6fb0ff, 0 0 10px var(--blue-team-glow);
+        }
+
+        .red-team-board .shot-log h3,
+        .red-team-board .log-coordinate,
+        .red-team-board .completed-by-label {
+            color: #ff6b66;
+        }
+
+        .blue-team-board .shot-log h3,
+        .blue-team-board .log-coordinate,
+        .blue-team-board .completed-by-label {
+            color: #6fb0ff;
+        }
+
+        .red-team-board .log-entry {
+            border-left-color: var(--red-team-main);
+        }
+
+        .blue-team-board .log-entry {
+            border-left-color: var(--blue-team-main);
+        }
+
+        .btn,
+        .board-title,
+        .row-label,
+        .col-label,
+        .shot-log h3,
+        .log-coordinate,
+        .log-status,
+        .legend-item,
+        .completed-by-label,
+        .modal h2,
+        label {
+            font-family: 'RuneScapeSmall', 'Cabin', sans-serif;
+        }
+
         .board-wrapper::before {
             content: '';
             position: absolute;
@@ -842,9 +932,9 @@
         </div>
         
         <div class="boards-container">
-            <div class="board-wrapper">
+            <div class="board-wrapper red-team-board">
                 <div class="board-header">
-                    <h2 class="board-title">Team 1</h2>
+                    <h2 class="board-title red-team-title">RED TEAM</h2>
                     <div class="board-controls" style="display: none;">
                         <button class="btn" onclick="showResetModal('team1')">Reset Board</button>
                     </div>
@@ -902,16 +992,16 @@
                     </div>
                 </div>
                 <div class="shot-log">
-                    <h3>Shot Log - Team 1</h3>
+                    <h3>Shot Log - RED TEAM</h3>
                     <div id="team1Log" class="log-entries">
                         <div class="log-empty">No shots fired yet</div>
                     </div>
                 </div>
             </div>
             
-            <div class="board-wrapper">
+            <div class="board-wrapper blue-team-board">
                 <div class="board-header">
-                    <h2 class="board-title">Team 2</h2>
+                    <h2 class="board-title blue-team-title">BLUE TEAM</h2>
                     <div class="board-controls" style="display: none;">
                         <button class="btn" onclick="showResetModal('team2')">Reset Board</button>
                     </div>
@@ -969,7 +1059,7 @@
                     </div>
                 </div>
                 <div class="shot-log">
-                    <h3>Shot Log - Team 2</h3>
+                    <h3>Shot Log - BLUE TEAM</h3>
                     <div id="team2Log" class="log-entries">
                         <div class="log-empty">No shots fired yet</div>
                     </div>
@@ -1620,7 +1710,7 @@
                         
                         const completedBy = log.completedBy ? `
                                     <div class="completed-by-text">
-                                        <span class="completed-by-label">Completed By:</span> ${log.completedBy}
+                                        <span class="completed-by-label">COMPLETED BY:</span> ${log.completedBy}
                                     </div>
                                 ` : '';
 
@@ -1645,7 +1735,7 @@
         function showResetModal(team) {
             if (!isEditMode) return;
             resetTeam = team;
-            const teamName = team === 'team1' ? 'Team 1' : 'Team 2';
+            const teamName = team === 'team1' ? 'RED TEAM' : 'BLUE TEAM';
             document.getElementById('resetTeamName').textContent = teamName;
             document.getElementById('resetModal').classList.add('active');
             document.getElementById('resetPasswordInput').value = '';
