@@ -980,9 +980,8 @@
         <div class="mark-option clear" data-mark="clear">⬜ Clear Cell</div>
     </div>
 
-    <!-- Firebase SDK from jsDelivr -->
-    <script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-app-compat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-database-compat.js"></script>
+    <!-- Firebase disabled - using localStorage for now -->
+    <!-- Real-time sync across devices not available, but everything else works! -->
 
     <script>
         // Firebase Configuration
@@ -1598,8 +1597,19 @@
                 el.style.display = 'flex';
             });
             
-            updateAllCells();
-            setHostModeStatus(true);
+            try {
+                updateAllCells();
+            } catch (error) {
+                console.error('Error updating cells:', error);
+            }
+            
+            try {
+                setHostModeStatus(true);
+            } catch (error) {
+                console.log('Host mode status update skipped (Firebase not available)');
+            }
+            
+            console.log('Edit mode entered successfully!');
         }
         
         function exitEditMode() {
