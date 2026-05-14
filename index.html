@@ -1663,6 +1663,71 @@ canvas {
     }
 </style>
 
+
+<style id="readability-patch">
+/* Larger readable UI text */
+body,
+button,
+input,
+select,
+textarea,
+label,
+.cell-tooltip,
+.log-entry,
+.modal-content p,
+.modal-content span,
+.modal-content div,
+.modal-content input,
+.modal-content button,
+.task-text,
+.username-display,
+.sync-status,
+.mark-context-menu,
+.shot-log {
+    font-size: 20px !important;
+    line-height: 1.45 !important;
+}
+
+/* Keep headers same size */
+h1, h2, h3, .modal-content h1, .modal-content h2 {
+    font-size: inherit !important;
+}
+
+/* Better modal spacing */
+.modal-content {
+    padding: 28px !important;
+}
+
+/* Input styling */
+.modal-content input {
+    padding: 16px !important;
+    min-height: 58px !important;
+}
+
+/* Add/repair submit button */
+.modal-content .submit-btn,
+.modal-content button[type="submit"],
+.modal-content .confirm-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-top: 18px !important;
+    padding: 14px 24px !important;
+    background: #ffb000 !important;
+    color: #000 !important;
+    border: 2px solid #ffd54a !important;
+    border-radius: 8px !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+}
+
+/* Hover */
+.modal-content button:hover {
+    filter: brightness(1.08);
+}
+</style>
+
 </head>
 <body>
     <div class="container">
@@ -3225,6 +3290,42 @@ document.addEventListener('DOMContentLoaded', () => {
             tip.innerHTML = '<span style="color:#ffcc33;">' + tile + ':</span> <span style="color:#ffffff;">' + task + '</span>';
         }
     });
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        document.querySelectorAll('.modal-content').forEach(modal => {
+            const hasSubmit =
+                modal.querySelector('button[type="submit"]') ||
+                modal.querySelector('.submit-btn') ||
+                modal.querySelector('.confirm-btn');
+
+            const input = modal.querySelector('input');
+
+            if (!hasSubmit && input) {
+                const btn = document.createElement('button');
+                btn.textContent = 'Submit';
+                btn.type = 'button';
+                btn.className = 'submit-btn';
+
+                btn.onclick = () => {
+                    const enterEvent = new KeyboardEvent('keydown', {
+                        key: 'Enter',
+                        code: 'Enter',
+                        keyCode: 13,
+                        which: 13,
+                        bubbles: true
+                    });
+                    input.dispatchEvent(enterEvent);
+                };
+
+                input.parentElement.appendChild(btn);
+            }
+        });
+    }, 100);
 });
 </script>
 
