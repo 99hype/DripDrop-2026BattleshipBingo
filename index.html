@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iron Drip/Drop 2026 Battleship Bingo - Wider White Rules v51</title>
+    <title>Iron Drip/Drop 2026 Battleship Bingo - Dynamic Roster</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;600;700&display=swap" rel="stylesheet">
@@ -2043,6 +2043,18 @@ canvas {
         text-align: center;
     }
 
+
+    .roster-empty {
+        grid-column: 1 / -1;
+        padding: 18px;
+        text-align: center;
+        color: rgba(255,255,255,0.72);
+        background: rgba(0,0,0,0.20);
+        border: 1px dashed rgba(255,216,74,0.28);
+        border-radius: 10px;
+        font-size: 1.05rem;
+    }
+
     .roster-save-btn {
         display: none;
         margin: 22px auto 0 auto;
@@ -2516,8 +2528,10 @@ canvas {
 
         // Discord Webhook
         // Paste your Discord webhook URL between the quotes below.
-        // Example: const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/...';
-        const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1504557763202912316/wBK0JHkzZWUoU51TJrd9ZF-SdP9Jo8maOTxqteIG-L6BOXVml1UsZC9wIp9m6EcX1tol';
+        // Example: const DISCORD_WEBHOOK_URLS = [
+            'https://discord.com/api/webhooks/1504557763202912316/wBK0JHkzZWUoU51TJrd9ZF-SdP9Jo8maOTxqteIG-L6BOXVml1UsZC9wIp9m6EcX1tol',
+            'https://discord.com/api/webhooks/1504658538453274704/nQ_Qhi8ztN5S4lBEPm6ItCi_DvKYUYJheQItGPT1GdJBvOryrA5-RIppLysr6m-1e3H9'
+        ];
         
         // Initialize Supabase
         let supabaseClient;
@@ -2834,26 +2848,34 @@ canvas {
         }
 
 
-        const ROSTER_SLOT_COUNT = 20;
+        const ROSTER_MIN_EDIT_SLOTS = 1;
+
+        function cleanRosterList(list, keepTrailingBlank = false) {
+            if (!Array.isArray(list)) list = [];
+            const cleaned = list
+                .map(name => (typeof name === 'string' ? name.trim() : ''))
+                .filter(name => name.length > 0);
+
+            if (keepTrailingBlank) cleaned.push('');
+            return cleaned;
+        }
 
         function defaultRosters() {
             return {
-                team1: Array(ROSTER_SLOT_COUNT).fill(''),
-                team2: Array(ROSTER_SLOT_COUNT).fill('')
+                team1: [''],
+                team2: ['']
             };
         }
 
-        function normalizeRosters(value) {
+        function normalizeRosters(value, keepTrailingBlank = false) {
             const fallback = defaultRosters();
-            if (!value || typeof value !== 'object') return fallback;
+            if (!value || typeof value !== 'object') value = fallback;
 
             ['team1', 'team2'].forEach(team => {
-                if (!Array.isArray(value[team])) value[team] = [];
-                const normalized = [];
-                for (let i = 0; i < ROSTER_SLOT_COUNT; i++) {
-                    normalized[i] = typeof value[team][i] === 'string' ? value[team][i] : '';
+                value[team] = cleanRosterList(value[team], keepTrailingBlank);
+                if (keepTrailingBlank && value[team].length < ROSTER_MIN_EDIT_SLOTS) {
+                    value[team] = Array(ROSTER_MIN_EDIT_SLOTS).fill('');
                 }
-                value[team] = normalized;
             });
 
             return value;
@@ -2864,18 +2886,38 @@ canvas {
             rosters = normalizeRosters(tileDetails._rosters);
         }
 
+        function getRosterRowsForDisplay(team) {
+            const savedNames = cleanRosterList(rosters && rosters[team], false);
+
+            if (!isEditMode) {
+                return savedNames;
+            }
+
+            return [...savedNames, ''];
+        }
+
         function createRosterSlots(team) {
             const container = document.getElementById(team + 'RosterSlots');
             if (!container) return;
             container.innerHTML = '';
 
-            for (let i = 0; i < ROSTER_SLOT_COUNT; i++) {
+            const rows = getRosterRowsForDisplay(team);
+
+            if (!isEditMode && rows.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'roster-empty';
+                empty.textContent = 'No players added yet.';
+                container.appendChild(empty);
+                return;
+            }
+
+            rows.forEach((name, i) => {
                 const row = document.createElement('div');
                 row.className = 'roster-slot';
 
                 const label = document.createElement('div');
                 label.className = 'roster-slot-label';
-                label.textContent = `Slot ${i + 1}`;
+                label.textContent = `Player ${i + 1}`;
 
                 const input = document.createElement('input');
                 input.type = 'text';
@@ -2883,9 +2925,20 @@ canvas {
                 input.dataset.team = team;
                 input.dataset.index = String(i);
                 input.placeholder = `Player ${i + 1}`;
+                input.value = name;
+                input.disabled = !isEditMode;
                 input.addEventListener('input', () => {
                     if (!isEditMode) return;
-                    rosters[team][i] = input.value;
+
+                    const inputs = Array.from(document.querySelectorAll(`.roster-input[data-team="${team}"]`));
+                    rosters[team] = inputs.map(field => field.value);
+
+                    const isLastInput = i === inputs.length - 1;
+                    if (isLastInput && input.value.trim()) {
+                        createRosterSlots(team);
+                        const nextInput = document.querySelector(`.roster-input[data-team="${team}"][data-index="${i + 1}"]`);
+                        if (nextInput) nextInput.focus();
+                    }
                 });
                 input.addEventListener('keydown', (event) => {
                     if (event.key === 'Enter' && isEditMode) {
@@ -2897,36 +2950,30 @@ canvas {
                 row.appendChild(label);
                 row.appendChild(input);
                 container.appendChild(row);
-            }
+            });
         }
 
         function createRosterDisplay() {
+            rosters = normalizeRosters(rosters, isEditMode);
             createRosterSlots('team1');
             createRosterSlots('team2');
             updateRosterDisplay();
         }
 
         function updateRosterDisplay() {
-            rosters = normalizeRosters(rosters);
+            rosters = normalizeRosters(rosters, isEditMode);
             const modalContent = document.querySelector('#rosterModal .roster-modal-content');
             if (modalContent) modalContent.classList.toggle('host-editing', isEditMode);
 
             const hint = document.getElementById('rosterEditHint');
             if (hint) {
                 hint.textContent = isEditMode
-                    ? 'Host Mode active: edit player slots, then click Save Roster.'
-                    : 'Host Mode required to edit player slots.';
+                    ? 'Host Mode active: add as many players as needed. A new slot appears when you type in the last blank slot.'
+                    : 'Host Mode required to edit the roster.';
             }
 
-            document.querySelectorAll('.roster-input').forEach(input => {
-                const team = input.dataset.team;
-                const index = parseInt(input.dataset.index, 10);
-                const currentValue = rosters[team] && typeof rosters[team][index] === 'string' ? rosters[team][index] : '';
-                if (document.activeElement !== input) {
-                    input.value = currentValue;
-                }
-                input.disabled = !isEditMode;
-            });
+            createRosterSlots('team1');
+            createRosterSlots('team2');
         }
 
         function openRosterModal() {
@@ -2936,22 +2983,22 @@ canvas {
         }
 
         function closeRosterModal() {
+            rosters = normalizeRosters(rosters);
             const modal = document.getElementById('rosterModal');
             if (modal) modal.classList.remove('active');
         }
 
         async function saveRosterFromModal() {
             if (!isEditMode) return;
-            rosters = normalizeRosters(rosters);
-            document.querySelectorAll('.roster-input').forEach(input => {
-                const team = input.dataset.team;
-                const index = parseInt(input.dataset.index, 10);
-                if (rosters[team]) rosters[team][index] = input.value.trim();
+
+            ['team1', 'team2'].forEach(team => {
+                const inputs = Array.from(document.querySelectorAll(`.roster-input[data-team="${team}"]`));
+                rosters[team] = cleanRosterList(inputs.map(input => input.value), false);
             });
 
             tileDetails = normalizeTileDetails(tileDetails);
             tileDetails._rosters = normalizeRosters(rosters);
-            updateRosterDisplay();
+            createRosterDisplay();
             await saveState();
         }
 
@@ -3333,7 +3380,7 @@ canvas {
 
 
         async function sendDiscordShipSunkUpdate({ team, shipIndex, timestamp }) {
-            if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL.trim() === '') {
+            if (!DISCORD_WEBHOOK_URLS || !DISCORD_WEBHOOK_URLS.length) {
                 console.log('Discord webhook not configured. Skipping ship sunk notification.');
                 return;
             }
@@ -3358,7 +3405,8 @@ canvas {
             const message = `${teamName} ${shipName} Has Sunk! - ${discordTimestamp} (${plainTimestamp})`;
 
             try {
-                const response = await fetch(DISCORD_WEBHOOK_URL, {
+                for (const webhookUrl of DISCORD_WEBHOOK_URLS) {
+                const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -3405,6 +3453,8 @@ canvas {
                     })
                 });
 
+                });
+
                 if (!response.ok) {
                     const text = await response.text();
                     console.error('Discord ship sunk webhook failed:', response.status, text);
@@ -3412,6 +3462,7 @@ canvas {
                 } else {
                     console.log('Discord ship sunk webhook sent:', message);
                 }
+            }
             } catch (err) {
                 console.error('Discord ship sunk webhook error:', err);
                 setSyncStatus('saved, but Discord ship webhook crashed: ' + (err.message || err), 'warn');
@@ -3419,7 +3470,7 @@ canvas {
         }
 
         async function sendDiscordTileUpdate({ shootingTeam, coordinate, status, completedBy, timestamp }) {
-            if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL.trim() === '') {
+            if (!DISCORD_WEBHOOK_URLS || !DISCORD_WEBHOOK_URLS.length) {
                 console.log('Discord webhook not configured. Skipping Discord notification.');
                 return;
             }
@@ -3442,7 +3493,8 @@ canvas {
             const message = `${shooterName} Shoots Tile ${coordinate} - ${cleanStatus} - Completed by "${cleanName}" - ${discordTimestamp} (${plainTimestamp})`;
 
             try {
-                const response = await fetch(DISCORD_WEBHOOK_URL, {
+                for (const webhookUrl of DISCORD_WEBHOOK_URLS) {
+                const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -3493,6 +3545,8 @@ canvas {
                     })
                 });
 
+                });
+
                 if (!response.ok) {
                     const text = await response.text();
                     console.error('Discord webhook failed:', response.status, text);
@@ -3500,6 +3554,7 @@ canvas {
                 } else {
                     console.log('Discord webhook sent:', message);
                 }
+            }
             } catch (err) {
                 console.error('Discord webhook error:', err);
                 setSyncStatus('saved, but Discord webhook crashed: ' + (err.message || err), 'warn');
