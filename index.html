@@ -2723,7 +2723,7 @@ canvas {
         <div class="map-builder-section" id="mapBuilderSection" style="display: none;">
             <div class="map-builder-header">
                 <h2>Map Builder</h2>
-                <div class="map-builder-subtitle">Click a ship to select • Hover to preview • Click grid to place • Click placed ship to remove</div>
+                <div class="map-builder-subtitle">Click a ship to select • Right-click to rotate • Hover to preview • Click grid to place • Click placed ship to remove</div>
                 <div class="map-builder-timestamp" id="mapBuilderTimestamp"></div>
             </div>
             
@@ -4927,8 +4927,9 @@ canvas {
 
         // Map Builder Functionality
         let mapBuilderState = {
-            placedShips: new Map(), // shipIndex -> {row, col, cells}
-            selectedShip: null
+            placedShips: new Map(), // shipIndex -> {row, col, cells, rotation}
+            selectedShip: null,
+            selectedRotation: 0 // 0, 90, 180, 270
         };
 
         function toggleMapBuilder() {
@@ -4939,6 +4940,22 @@ canvas {
             } else {
                 section.style.display = 'none';
             }
+        }
+
+        function rotateShipCells(cells, rotation) {
+            // Rotate cells around origin (0,0)
+            let rotated = cells;
+            const times = (rotation / 90) % 4;
+            
+            for (let i = 0; i < times; i++) {
+                // Rotate 90 degrees clockwise: (row, col) -> (col, -row)
+                rotated = rotated.map(([r, c]) => [c, -r]);
+            }
+            
+            // Normalize to start at (0,0)
+            const minRow = Math.min(...rotated.map(([r, c]) => r));
+            const minCol = Math.min(...rotated.map(([r, c]) => c));
+            return rotated.map(([r, c]) => [r - minRow, c - minCol]);
         }
 
         function initMapBuilder() {
@@ -4956,7 +4973,7 @@ canvas {
                     // Hover to show preview
                     cell.addEventListener('mouseenter', () => {
                         if (mapBuilderState.selectedShip !== null) {
-                            showShipPreview(mapBuilderState.selectedShip, parseInt(row), parseInt(col));
+                            showShipPreview(mapBuilderState.selectedShip, parseInt(row), parseInt(col), mapBuilderState.selectedRotation);
                         }
                     });
                     
@@ -4964,7 +4981,7 @@ canvas {
                         clearShipPreview();
                     });
                     
-                    // Click to place or remove
+                    // Left click to place or remove
                     cell.addEventListener('click', () => {
                         // If clicking on a placed ship, remove it
                         if (cell.dataset.shipIndex !== undefined) {
@@ -4972,7 +4989,16 @@ canvas {
                         }
                         // If a ship is selected, place it
                         else if (mapBuilderState.selectedShip !== null) {
-                            placeShipOnGrid(mapBuilderState.selectedShip, parseInt(row), parseInt(col));
+                            placeShipOnGrid(mapBuilderState.selectedShip, parseInt(row), parseInt(col), mapBuilderState.selectedRotation);
+                        }
+                    });
+                    
+                    // Right click to rotate (when ship is selected)
+                    cell.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        if (mapBuilderState.selectedShip !== null) {
+                            mapBuilderState.selectedRotation = (mapBuilderState.selectedRotation + 90) % 360;
+                            showShipPreview(mapBuilderState.selectedShip, parseInt(row), parseInt(col), mapBuilderState.selectedRotation);
                         }
                     });
                     
@@ -5023,6 +5049,14 @@ canvas {
                     selectShip(index);
                 });
                 
+                // Right-click on palette to rotate preview
+                shipDiv.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    if (mapBuilderState.selectedShip === index) {
+                        mapBuilderState.selectedRotation = (mapBuilderState.selectedRotation + 90) % 360;
+                    }
+                });
+                
                 palette.appendChild(shipDiv);
             });
             
@@ -5036,23 +5070,27 @@ canvas {
                 ship.classList.remove('selected');
             });
             
-            // Select this ship
+            // Select this ship and reset rotation
             mapBuilderState.selectedShip = shipIndex;
+            mapBuilderState.selectedRotation = 0;
             const paletteShip = document.querySelector(`.palette-ship[data-ship-index="${shipIndex}"]`);
             if (paletteShip) {
                 paletteShip.classList.add('selected');
             }
         }
 
-        function showShipPreview(shipIndex, startRow, startCol) {
+        function showShipPreview(shipIndex, startRow, startCol, rotation) {
             const layout = SHIP_LAYOUTS[shipIndex];
             const grid = document.getElementById('mapBuilderGrid');
             
             // Clear any existing preview
             clearShipPreview();
             
+            // Rotate ship cells
+            const rotatedCells = rotateShipCells(layout.cells, rotation);
+            
             // Calculate ship cells
-            const shipCells = layout.cells.map(([r, c]) => [startRow + r, startCol + c]);
+            const shipCells = rotatedCells.map(([r, c]) => [startRow + r, startCol + c]);
             
             // Check if placement is valid
             let isValid = true;
@@ -5092,7 +5130,7 @@ canvas {
             });
         }
 
-        function placeShipOnGrid(shipIndex, startRow, startCol) {
+        function placeShipOnGrid(shipIndex, startRow, startCol, rotation) {
             const layout = SHIP_LAYOUTS[shipIndex];
             const grid = document.getElementById('mapBuilderGrid');
             
@@ -5101,8 +5139,11 @@ canvas {
                 clearShipFromGrid(shipIndex);
             }
             
+            // Rotate ship cells
+            const rotatedCells = rotateShipCells(layout.cells, rotation);
+            
             // Check if placement is valid
-            const shipCells = layout.cells.map(([r, c]) => [startRow + r, startCol + c]);
+            const shipCells = rotatedCells.map(([r, c]) => [startRow + r, startCol + c]);
             for (const [r, c] of shipCells) {
                 if (r < 0 || r >= 12 || c < 0 || c >= 13) {
                     return; // Out of bounds
@@ -5125,7 +5166,7 @@ canvas {
                 cell.dataset.shipIndex = shipIndex;
             });
             
-            mapBuilderState.placedShips.set(shipIndex, { startRow, startCol, cells: shipCells });
+            mapBuilderState.placedShips.set(shipIndex, { startRow, startCol, cells: shipCells, rotation });
             
             // Mark ship as placed in palette
             const paletteShip = document.querySelector(`.palette-ship[data-ship-index="${shipIndex}"]`);
@@ -5135,6 +5176,7 @@ canvas {
             
             // Deselect ship after placing
             mapBuilderState.selectedShip = null;
+            mapBuilderState.selectedRotation = 0;
             document.querySelectorAll('.palette-ship').forEach(ship => {
                 ship.classList.remove('selected');
             });
