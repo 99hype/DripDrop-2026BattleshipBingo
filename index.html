@@ -1650,6 +1650,16 @@ canvas {
         outline: 2px solid rgba(255, 216, 74, 0.35);
     }
 
+    .ship-number {
+        color: #ffffff;
+        font-size: 0.7rem;
+        font-weight: bold;
+        line-height: 1;
+        text-align: center;
+        text-shadow: 1px 1px 0 #000;
+        margin-bottom: 2px;
+    }
+
     .ship-label {
         color: #ffd84a;
         font-size: 0.82rem;
@@ -1872,6 +1882,10 @@ canvas {
         background: rgba(255, 216, 74, 0.13) !important;
         border-color: #ffd84a !important;
         outline: 2px solid rgba(255, 216, 74, 0.55) !important;
+    }
+
+    .ship-number {
+        font-size: 0.85rem !important;
     }
 
     .ship-label {
@@ -2528,7 +2542,8 @@ canvas {
 
         // Discord Webhook
         // Paste your Discord webhook URL between the quotes below.
-        // Example: const DISCORD_WEBHOOK_URLS = [
+        // Example: const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/...';
+        const DISCORD_WEBHOOK_URLS = [
             'https://discord.com/api/webhooks/1504557763202912316/wBK0JHkzZWUoU51TJrd9ZF-SdP9Jo8maOTxqteIG-L6BOXVml1UsZC9wIp9m6EcX1tol',
             'https://discord.com/api/webhooks/1504658538453274704/nQ_Qhi8ztN5S4lBEPm6ItCi_DvKYUYJheQItGPT1GdJBvOryrA5-RIppLysr6m-1e3H9'
         ];
@@ -2816,12 +2831,12 @@ canvas {
         
         // Ship status silhouettes. true = sunk, false = still afloat.
         const SHIP_LAYOUTS = [
-            { name: 'Boat 1', cells: [[0,1],[1,0],[1,1],[1,2],[2,1]] },
-            { name: 'Boat 2', cells: [[0,0],[0,1],[0,2],[1,1],[2,1],[3,0],[3,1],[3,2]] },
-            { name: 'Boat 3', cells: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2],[3,0],[3,2],[4,0],[4,1],[4,2]] },
-            { name: 'Boat 4', cells: [[0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[5,1]] },
-            { name: 'Boat 5', cells: [[0,0],[1,0],[2,0],[3,0],[4,0]] },
-            { name: 'Boat 6', cells: [[0,0],[0,1],[0,2],[1,0],[1,2],[2,0],[2,2],[3,0],[3,2],[4,0],[4,1],[4,2]] }
+            { name: 'Crosshair', cells: [[0,1],[1,0],[1,1],[1,2],[2,1]] },
+            { name: 'Hammerhead', cells: [[0,0],[0,1],[0,2],[1,1],[2,1],[3,0],[3,1],[3,2]] },
+            { name: 'Dual Striker', cells: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2],[3,0],[3,2],[4,0],[4,1],[4,2]] },
+            { name: 'The L', cells: [[0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[5,1]] },
+            { name: 'The Line', cells: [[0,0],[1,0],[2,0],[3,0],[4,0]] },
+            { name: 'The Big O', cells: [[0,0],[0,1],[0,2],[1,0],[1,2],[2,0],[2,2],[3,0],[3,2],[4,0],[4,1],[4,2]] }
         ];
 
         function defaultShipStatuses() {
@@ -2936,8 +2951,7 @@ canvas {
                     const isLastInput = i === inputs.length - 1;
                     if (isLastInput && input.value.trim()) {
                         createRosterSlots(team);
-                        const nextInput = document.querySelector(`.roster-input[data-team="${team}"][data-index="${i + 1}"]`);
-                        if (nextInput) nextInput.focus();
+                        // Auto-focus removed - cursor stays in current box
                     }
                 });
                 input.addEventListener('keydown', (event) => {
@@ -3025,6 +3039,10 @@ canvas {
                 card.dataset.team = team;
                 card.dataset.shipIndex = index;
 
+                const boatNumber = document.createElement('div');
+                boatNumber.className = 'ship-number';
+                boatNumber.textContent = `Boat ${index + 1}`;
+
                 const label = document.createElement('div');
                 label.className = 'ship-label';
                 label.textContent = layout.name;
@@ -3047,6 +3065,7 @@ canvas {
                     }
                 }
 
+                card.appendChild(boatNumber);
                 card.appendChild(label);
                 card.appendChild(grid);
                 card.appendChild(size);
@@ -3380,7 +3399,7 @@ canvas {
 
 
         async function sendDiscordShipSunkUpdate({ team, shipIndex, timestamp }) {
-            if (!DISCORD_WEBHOOK_URLS || !DISCORD_WEBHOOK_URLS.length) {
+            if (!DISCORD_WEBHOOK_URLS || DISCORD_WEBHOOK_URLS.length === 0) {
                 console.log('Discord webhook not configured. Skipping ship sunk notification.');
                 return;
             }
@@ -3404,73 +3423,74 @@ canvas {
             const description = `💥 **SHIP DESTROYED!** ${teamName} ${shipName} has been sent to the depths.`;
             const message = `${teamName} ${shipName} Has Sunk! - ${discordTimestamp} (${plainTimestamp})`;
 
-            try {
-                for (const webhookUrl of DISCORD_WEBHOOK_URLS) {
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username: 'Battleship Bingo',
-                        content: message,
-                        embeds: [
+            const payload = {
+                username: 'Battleship Bingo',
+                content: message,
+                embeds: [
+                    {
+                        title,
+                        description,
+                        color: team === 'team1' ? 0xff4444 : 0x3b82f6,
+                        fields: [
                             {
-                                title,
-                                description,
-                                color: team === 'team1' ? 0xff4444 : 0x3b82f6,
-                                fields: [
-                                    {
-                                        name: '🚢 Ship',
-                                        value: shipName,
-                                        inline: true
-                                    },
-                                    {
-                                        name: '🎯 Team',
-                                        value: teamName,
-                                        inline: true
-                                    },
-                                    {
-                                        name: '📏 Size',
-                                        value: `${shipSize} tiles`,
-                                        inline: true
-                                    },
-                                    {
-                                        name: '🕒 Timestamp',
-                                        value: discordTimestamp,
-                                        inline: false
-                                    }
-                                ],
-                                footer: {
-                                    text: 'DripDrop 2026 Battleship Bingo'
-                                },
-                                timestamp: date.toISOString()
+                                name: '🚢 Ship',
+                                value: shipName,
+                                inline: true
+                            },
+                            {
+                                name: '🎯 Team',
+                                value: teamName,
+                                inline: true
+                            },
+                            {
+                                name: '📏 Size',
+                                value: `${shipSize} tiles`,
+                                inline: true
+                            },
+                            {
+                                name: '🕒 Timestamp',
+                                value: discordTimestamp,
+                                inline: false
                             }
                         ],
-                        allowed_mentions: {
-                            parse: []
-                        }
-                    })
-                });
-
-                });
-
-                if (!response.ok) {
-                    const text = await response.text();
-                    console.error('Discord ship sunk webhook failed:', response.status, text);
-                    setSyncStatus('saved, but Discord ship webhook failed: ' + response.status, 'warn');
-                } else {
-                    console.log('Discord ship sunk webhook sent:', message);
+                        footer: {
+                            text: 'DripDrop 2026 Battleship Bingo'
+                        },
+                        timestamp: date.toISOString()
+                    }
+                ],
+                allowed_mentions: {
+                    parse: []
                 }
-            }
-            } catch (err) {
-                console.error('Discord ship sunk webhook error:', err);
-                setSyncStatus('saved, but Discord ship webhook crashed: ' + (err.message || err), 'warn');
+            };
+
+            // Send to all webhook URLs
+            for (const webhookUrl of DISCORD_WEBHOOK_URLS) {
+                try {
+                    const response = await fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const text = await response.text();
+                        console.error('Discord ship sunk webhook failed:', response.status, text);
+                        setSyncStatus('saved, but Discord ship webhook failed: ' + response.status, 'warn');
+                    } else {
+                        console.log('Discord ship sunk webhook sent:', message);
+                    }
+                } catch (err) {
+                    console.error('Discord ship sunk webhook error:', err);
+                    setSyncStatus('saved, but Discord ship webhook crashed: ' + (err.message || err), 'warn');
+                }
             }
         }
 
         async function sendDiscordTileUpdate({ shootingTeam, coordinate, status, completedBy, timestamp }) {
-            if (!DISCORD_WEBHOOK_URLS || !DISCORD_WEBHOOK_URLS.length) {
+            if (!DISCORD_WEBHOOK_URLS || DISCORD_WEBHOOK_URLS.length === 0) {
                 console.log('Discord webhook not configured. Skipping Discord notification.');
                 return;
             }
@@ -3492,72 +3512,73 @@ canvas {
 
             const message = `${shooterName} Shoots Tile ${coordinate} - ${cleanStatus} - Completed by "${cleanName}" - ${discordTimestamp} (${plainTimestamp})`;
 
-            try {
-                for (const webhookUrl of DISCORD_WEBHOOK_URLS) {
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username: 'Battleship Bingo',
-                        embeds: [
+            const payload = {
+                username: 'Battleship Bingo',
+                embeds: [
+                    {
+                        title: `${shooterName.toUpperCase()} FIRES ON ${coordinate}`,
+                        description:
+                            cleanStatus === 'HIT'
+                                ? '💥 **DIRECT HIT!**'
+                                : '🌊 **SHOT MISSED!**',
+
+                        color:
+                            shootingTeam === 'team1'
+                                ? 0xff4444
+                                : 0x3b82f6,
+
+                        fields: [
                             {
-                                title: `${shooterName.toUpperCase()} FIRES ON ${coordinate}`,
-                                description:
-                                    cleanStatus === 'HIT'
-                                        ? '💥 **DIRECT HIT!**'
-                                        : '🌊 **SHOT MISSED!**',
-
-                                color:
-                                    shootingTeam === 'team1'
-                                        ? 0xff4444
-                                        : 0x3b82f6,
-
-                                fields: [
-                                    {
-                                        name: '🎯 Result',
-                                        value: cleanStatus,
-                                        inline: true
-                                    },
-                                    {
-                                        name: '⚔️ Completed By',
-                                        value: cleanName,
-                                        inline: true
-                                    },
-                                    {
-                                        name: '🕒 Timestamp',
-                                        value: discordTimestamp,
-                                        inline: false
-                                    }
-                                ],
-
-                                footer: {
-                                    text: 'DripDrop 2026 Battleship Bingo'
-                                },
-
-                                timestamp: date.toISOString()
+                                name: '🎯 Result',
+                                value: cleanStatus,
+                                inline: true
+                            },
+                            {
+                                name: '⚔️ Completed By',
+                                value: cleanName,
+                                inline: true
+                            },
+                            {
+                                name: '🕒 Timestamp',
+                                value: discordTimestamp,
+                                inline: false
                             }
                         ],
-                        allowed_mentions: {
-                            parse: []
-                        }
-                    })
-                });
 
-                });
+                        footer: {
+                            text: 'DripDrop 2026 Battleship Bingo'
+                        },
 
-                if (!response.ok) {
-                    const text = await response.text();
-                    console.error('Discord webhook failed:', response.status, text);
-                    setSyncStatus('saved, but Discord webhook failed: ' + response.status, 'warn');
-                } else {
-                    console.log('Discord webhook sent:', message);
+                        timestamp: date.toISOString()
+                    }
+                ],
+                allowed_mentions: {
+                    parse: []
                 }
-            }
-            } catch (err) {
-                console.error('Discord webhook error:', err);
-                setSyncStatus('saved, but Discord webhook crashed: ' + (err.message || err), 'warn');
+            };
+
+            // Send to all webhook URLs
+            for (const webhookUrl of DISCORD_WEBHOOK_URLS) {
+                try {
+                    const response = await fetch(webhookUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const text = await response.text();
+                        console.error('Discord webhook failed:', response.status, text);
+                        setSyncStatus('saved, but Discord webhook failed: ' + response.status, 'warn');
+                    } else {
+                        console.log('Discord webhook sent:', message);
+                    }
+                } catch (err) {
+                    console.error('Discord webhook error:', err);
+                    setSyncStatus('saved, but Discord webhook crashed: ' + (err.message || err), 'warn');
+                }
             }
         }
         
