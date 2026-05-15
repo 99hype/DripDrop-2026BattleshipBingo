@@ -1609,147 +1609,6 @@ canvas {
 </style>
 
 
-
-<style id="ship-status-patch">
-    .ship-status-panel {
-        width: 98%;
-        margin: -8px auto 20px auto;
-        padding: 10px;
-        display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        gap: 8px;
-        background: rgba(0,0,0,0.28);
-        border: 1px solid rgba(255, 216, 74, 0.18);
-        border-radius: 12px;
-        overflow: hidden;
-    }
-
-    .ship-card {
-        position: relative;
-        min-width: 0;
-        min-height: 112px;
-        padding: 8px 4px 9px;
-        border: 1px solid rgba(255, 216, 74, 0.22);
-        border-radius: 9px;
-        background: rgba(255,255,255,0.035);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 6px;
-        user-select: none;
-    }
-
-    .ship-card.host-editable {
-        cursor: pointer;
-    }
-
-    .ship-card.host-editable:hover {
-        border-color: #ffd84a;
-        background: rgba(255, 216, 74, 0.10);
-        outline: 2px solid rgba(255, 216, 74, 0.35);
-    }
-
-    .ship-label {
-        color: #ffd84a;
-        font-size: 0.82rem;
-        line-height: 1;
-        text-align: center;
-        text-shadow: 1px 1px 0 #000;
-        white-space: nowrap;
-    }
-
-    .ship-size {
-        color: rgba(255,255,255,0.72);
-        font-size: 0.58rem;
-        line-height: 1;
-        text-align: center;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        white-space: nowrap;
-    }
-
-    .ship-grid {
-        display: grid;
-        gap: 1px;
-        align-items: center;
-        justify-content: center;
-        min-height: 58px;
-    }
-
-    .ship-cell {
-        width: 11px;
-        height: 11px;
-        border-radius: 2px;
-        background: transparent;
-    }
-
-    .ship-cell.filled {
-        border: 1px solid rgba(255,255,255,0.12);
-        box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
-    }
-
-    .red-team-board .ship-cell.filled {
-        background: linear-gradient(180deg, #ff6b66, #8f1f1b);
-    }
-
-    .blue-team-board .ship-cell.filled {
-        background: linear-gradient(180deg, #6fb0ff, #173d78);
-    }
-
-    .ship-card.sunk {
-        opacity: 0.72;
-        filter: grayscale(1);
-        background: rgba(0,0,0,0.30);
-    }
-
-    .ship-card.sunk .ship-cell.filled {
-        background: #6a6a6a !important;
-        border-color: rgba(255,255,255,0.08);
-    }
-
-    .ship-card.sunk::after {
-        content: 'X';
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #ff4444;
-        font-size: 4.4rem;
-        line-height: 1;
-        text-shadow:
-            3px 3px 0 #000,
-            -2px -2px 0 #000,
-            0 0 10px rgba(255,0,0,0.55);
-        pointer-events: none;
-    }
-
-    .ship-card.sunk .ship-label,
-    .ship-card.sunk .ship-size {
-        color: #bfbfbf !important;
-    }
-
-    .ship-status-hint {
-        grid-column: 1 / -1;
-        text-align: center;
-        color: rgba(255,255,255,0.65);
-        font-size: 0.8rem;
-        display: none;
-    }
-
-    .ship-status-panel.host-editing .ship-status-hint {
-        display: block;
-    }
-
-    @media (max-width: 700px) {
-        .ship-status-panel {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-    }
-
-</style>
-
 <style id="startup-performance-patch">
     /* Hard-disable expensive startup animations */
     *,
@@ -1805,119 +1664,139 @@ canvas {
 </style>
 
 
+<style id="readability-patch">
+/* Larger readable UI text */
+body,
+button,
+input,
+select,
+textarea,
+label,
+.cell-tooltip,
+.log-entry,
+.modal-content p,
+.modal-content span,
+.modal-content div,
+.modal-content input,
+.modal-content button,
+.task-text,
+.username-display,
+.sync-status,
+.mark-context-menu,
+.shot-log {
+    font-size: 20px !important;
+    line-height: 1.45 !important;
+}
 
-<style id="ship-hover-magnify-fix">
-    /* Boat hover magnifier: keep the one-row layout, but let the hovered boat pop out clearly. */
-    .ship-status-panel {
-        overflow: visible !important;
-        position: relative !important;
-        z-index: 20 !important;
-    }
+/* Keep headers same size */
+h1, h2, h3, .modal-content h1, .modal-content h2 {
+    font-size: inherit !important;
+}
 
-    .ship-card {
-        position: relative !important;
-        overflow: visible !important;
-        transform-origin: center top !important;
-    }
+/* Better modal spacing */
+.modal-content {
+    padding: 28px !important;
+}
 
-    .ship-card:hover {
-        transform: scale(1.42) !important;
-        z-index: 5000 !important;
-        border-color: #ffd84a !important;
-        background: rgba(255, 216, 74, 0.14) !important;
-        outline: 2px solid rgba(255, 216, 74, 0.65) !important;
-    }
+/* Input styling */
+.modal-content input {
+    padding: 16px !important;
+    min-height: 58px !important;
+}
 
-    .ship-card:hover .ship-label {
-        font-size: 0.95rem !important;
-    }
+/* Add/repair submit button */
+.modal-content .submit-btn,
+.modal-content button[type="submit"],
+.modal-content .confirm-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-top: 18px !important;
+    padding: 14px 24px !important;
+    background: #ffb000 !important;
+    color: #000 !important;
+    border: 2px solid #ffd54a !important;
+    border-radius: 8px !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+}
 
-    .ship-card:hover .ship-size {
-        font-size: 0.68rem !important;
-    }
-
-    .ship-card:hover .ship-cell {
-        width: 13px !important;
-        height: 13px !important;
-    }
-
-    .ship-card:hover .ship-grid {
-        gap: 2px !important;
-    }
+/* Hover */
+.modal-content button:hover {
+    filter: brightness(1.08);
+}
 </style>
 
 
-<style id="ship-hover-polish-final">
-    /* Smooth in-card boat hover: no layout overlap with neighboring boats or board labels. */
-    .ship-status-panel {
-        overflow: visible !important;
-        align-items: stretch !important;
-        gap: 10px !important;
-        padding: 12px !important;
+<style id="roster-style-patch">
+    .roster-modal-content {
+        width: min(1200px, 96vw) !important;
+        max-width: 1200px !important;
     }
-
-    .ship-card {
-        min-height: 174px !important;
-        padding: 10px 5px 12px !important;
-        overflow: hidden !important;
-        transform: none !important;
-        transition: background-color 160ms ease, border-color 160ms ease, outline-color 160ms ease !important;
-        justify-content: flex-start !important;
-        gap: 9px !important;
+    .roster-help {
+        color: #ffffff !important;
+        font-size: 20px !important;
+        margin: 8px 0 20px 0 !important;
     }
-
-    .ship-card:hover {
-        transform: none !important;
-        z-index: auto !important;
-        background: rgba(255, 216, 74, 0.13) !important;
-        border-color: #ffd84a !important;
-        outline: 2px solid rgba(255, 216, 74, 0.55) !important;
+    .roster-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(280px, 1fr));
+        gap: 22px;
     }
-
-    .ship-label {
-        font-size: 1rem !important;
-        line-height: 1.05 !important;
+    .roster-team {
+        background: rgba(0,0,0,0.24);
+        border: 2px solid rgba(255,216,74,0.22);
+        border-radius: 12px;
+        padding: 18px;
     }
-
-    .ship-size {
-        font-size: 0.78rem !important;
-        line-height: 1.05 !important;
-        color: rgba(255,255,255,0.86) !important;
+    .roster-team h3 {
+        margin-bottom: 14px;
+        color: #ffd84a !important;
+        font-size: 2rem !important;
+        text-align: center;
     }
-
-    .ship-grid {
-        min-height: 100px !important;
-        align-content: center !important;
-        justify-content: center !important;
-        transform: scale(1) !important;
-        transform-origin: center center !important;
-        transition: transform 180ms ease-out !important;
-        will-change: transform !important;
+    .roster-red { border-color: rgba(255, 120, 120, 0.55); }
+    .roster-blue { border-color: rgba(120, 190, 255, 0.55); }
+    .roster-slot {
+        display: grid;
+        grid-template-columns: 70px 1fr;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 10px;
     }
-
-    .ship-card:hover .ship-grid {
-        transform: scale(1.22) !important;
-        gap: 2px !important;
+    .roster-slot-number {
+        color: #ffd84a !important;
+        font-size: 1.35rem !important;
+        text-align: right;
     }
-
-    .ship-cell {
-        width: 12px !important;
-        height: 12px !important;
-        transition: filter 160ms ease, opacity 160ms ease !important;
+    .roster-input {
+        width: 100%;
+        min-height: 48px !important;
+        padding: 10px 12px !important;
+        border: 2px solid #ffb000 !important;
+        border-radius: 8px !important;
+        background: rgba(0,0,0,0.45) !important;
+        color: #ffffff !important;
+        font-size: 1.25rem !important;
     }
-
-    .ship-card:hover .ship-cell {
-        width: 12px !important;
-        height: 12px !important;
+    .roster-input[readonly] {
+        border-color: rgba(255,216,74,0.25) !important;
+        color: #f0d79a !important;
+        cursor: default;
     }
-
-    .ship-card.sunk::after {
-        font-size: 5.3rem !important;
+    .roster-actions {
+        display: flex;
+        justify-content: center;
+        margin-top: 22px;
     }
-
-    .ship-card:hover .ship-label,
-    .ship-card:hover .ship-size {
-        transform: none !important;
+    .roster-save-btn {
+        min-width: 240px;
+        font-size: 1.35rem !important;
+    }
+    .roster-actions.host-only-hidden { display: none !important; }
+    @media (max-width: 800px) {
+        .roster-grid { grid-template-columns: 1fr; }
     }
 </style>
 
@@ -1933,6 +1812,7 @@ canvas {
         <div class="admin-controls">
             <button class="btn utility-btn" onclick="openTaskListModal()">See Full Task List</button>
             <button class="btn utility-btn" onclick="openRulesModal()">Rules</button>
+            <button class="btn utility-btn" onclick="openRosterModal()">Roster</button>
             <button class="btn" id="adminBtn">Host Mode</button>
             <button class="btn global-reset-btn" id="globalResetBtn" onclick="showGlobalResetModal()" style="display: none;">Reset All</button>
         </div>
@@ -1942,7 +1822,6 @@ canvas {
                 <div class="board-header">
                     <h2 class="board-title red-team-title">RED TEAM <span class="team-counter" id="redTeamCounter">0 tiles</span></h2>
                 </div>
-                <div class="ship-status-panel" id="team1ShipStatus"></div>
                 <div class="grid-container">
                     <div class="col-labels">
                         <div class="col-label">1</div>
@@ -2007,7 +1886,6 @@ canvas {
                 <div class="board-header">
                     <h2 class="board-title blue-team-title">BLUE TEAM <span class="team-counter" id="blueTeamCounter">0 tiles</span></h2>
                 </div>
-                <div class="ship-status-panel" id="team2ShipStatus"></div>
                 <div class="grid-container">
                     <div class="col-labels">
                         <div class="col-label">1</div>
@@ -2136,6 +2014,32 @@ canvas {
 
         </div>
     </div>
+
+
+    <div class="modal" id="rosterModal">
+        <div class="modal-content large-modal roster-modal-content">
+            <button class="modal-x-btn" onclick="closeRosterModal()" aria-label="Close roster">×</button>
+            <h2>Team Roster</h2>
+            <p class="roster-help">Hosts can edit player slots while Host Mode is active. Viewers can only read the roster.</p>
+
+            <div class="roster-grid">
+                <div class="roster-team roster-red">
+                    <h3>Red Team</h3>
+                    <div id="redRosterSlots" class="roster-slots"></div>
+                </div>
+
+                <div class="roster-team roster-blue">
+                    <h3>Blue Team</h3>
+                    <div id="blueRosterSlots" class="roster-slots"></div>
+                </div>
+            </div>
+
+            <div class="roster-actions">
+                <button class="btn roster-save-btn" onclick="saveRosterFromModal()">Save Roster</button>
+            </div>
+        </div>
+    </div>
+
 
     <div class="modal" id="resetModal">
         <div class="modal-content">
@@ -2276,13 +2180,12 @@ canvas {
 
         function normalizeTileDetails(value) {
             const fallback = defaultTileDetails();
-            if (!value || typeof value !== 'object') value = fallback;
+            if (!value || typeof value !== 'object') return fallback;
             ['team1', 'team2'].forEach(team => {
                 if (!value[team] || typeof value[team] !== 'object' || Array.isArray(value[team])) {
                     value[team] = {};
                 }
             });
-            value._shipStatuses = normalizeShipStatuses(value._shipStatuses);
             return value;
         }
 
@@ -2471,151 +2374,6 @@ canvas {
             'L13': 'Fox Whistle'
         };
         
-        // Ship status silhouettes. true = sunk, false = still afloat.
-        const SHIP_LAYOUTS = [
-            { name: 'Boat 1', cells: [[0,1],[1,0],[1,1],[1,2],[2,1]] },
-            { name: 'Boat 2', cells: [[0,0],[0,1],[0,2],[1,1],[2,1],[3,0],[3,1],[3,2]] },
-            { name: 'Boat 3', cells: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2],[3,0],[3,2],[4,0],[4,1],[4,2]] },
-            { name: 'Boat 4', cells: [[0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[5,1]] },
-            { name: 'Boat 5', cells: [[0,0],[1,0],[2,0],[3,0],[4,0]] },
-            { name: 'Boat 6', cells: [[0,0],[0,1],[0,2],[1,0],[1,2],[2,0],[2,2],[3,0],[3,2],[4,0],[4,1],[4,2]] }
-        ];
-
-        function defaultShipStatuses() {
-            return {
-                team1: Array(SHIP_LAYOUTS.length).fill(false),
-                team2: Array(SHIP_LAYOUTS.length).fill(false)
-            };
-        }
-
-        function normalizeShipStatuses(value) {
-            const fallback = defaultShipStatuses();
-            if (!value || typeof value !== 'object') return fallback;
-
-            ['team1', 'team2'].forEach(team => {
-                if (!Array.isArray(value[team])) value[team] = [];
-                const normalized = [];
-                for (let i = 0; i < SHIP_LAYOUTS.length; i++) {
-                    normalized[i] = value[team][i] === true;
-                }
-                value[team] = normalized;
-            });
-
-            return value;
-        }
-
-        function getShipBounds(layout) {
-            let maxRow = 0;
-            let maxCol = 0;
-            layout.cells.forEach(([row, col]) => {
-                maxRow = Math.max(maxRow, row);
-                maxCol = Math.max(maxCol, col);
-            });
-            return { rows: maxRow + 1, cols: maxCol + 1 };
-        }
-
-        function createShipStatusDisplay(containerId, team) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-
-            container.innerHTML = '';
-
-            SHIP_LAYOUTS.forEach((layout, index) => {
-                const bounds = getShipBounds(layout);
-                const card = document.createElement('div');
-                card.className = 'ship-card';
-                card.dataset.team = team;
-                card.dataset.shipIndex = index;
-
-                const label = document.createElement('div');
-                label.className = 'ship-label';
-                label.textContent = layout.name;
-
-                const size = document.createElement('div');
-                size.className = 'ship-size';
-                size.textContent = `${layout.cells.length} tiles`;
-
-                const grid = document.createElement('div');
-                grid.className = 'ship-grid';
-                grid.style.gridTemplateColumns = `repeat(${bounds.cols}, 14px)`;
-                grid.style.gridTemplateRows = `repeat(${bounds.rows}, 14px)`;
-
-                const filled = new Set(layout.cells.map(([row, col]) => `${row},${col}`));
-                for (let row = 0; row < bounds.rows; row++) {
-                    for (let col = 0; col < bounds.cols; col++) {
-                        const cell = document.createElement('div');
-                        cell.className = filled.has(`${row},${col}`) ? 'ship-cell filled' : 'ship-cell';
-                        grid.appendChild(cell);
-                    }
-                }
-
-                card.appendChild(label);
-                card.appendChild(grid);
-                card.appendChild(size);
-
-                card.addEventListener('click', () => {
-                    if (!isEditMode) return;
-                    toggleShipSunk(team, index);
-                });
-
-                container.appendChild(card);
-            });
-
-            const hint = document.createElement('div');
-            hint.className = 'ship-status-hint';
-            hint.textContent = 'Host Mode: click a boat to toggle sunk / active';
-            container.appendChild(hint);
-        }
-
-        function toggleShipSunk(team, index) {
-            if (!isEditMode) return;
-            shipStatuses = normalizeShipStatuses(shipStatuses);
-
-            const wasSunk = !!(shipStatuses[team] && shipStatuses[team][index]);
-            const isNowSunk = !wasSunk;
-            shipStatuses[team][index] = isNowSunk;
-
-            tileDetails = normalizeTileDetails(tileDetails);
-            tileDetails._shipStatuses = normalizeShipStatuses(shipStatuses);
-
-            updateShipDisplays();
-            saveState();
-
-            if (isNowSunk) {
-                sendDiscordShipSunkUpdate({
-                    team,
-                    shipIndex: index,
-                    timestamp: new Date()
-                });
-            }
-        }
-
-        function updateShipDisplays() {
-            shipStatuses = normalizeShipStatuses(shipStatuses);
-
-            ['team1', 'team2'].forEach(team => {
-                const panel = document.getElementById(team + 'ShipStatus');
-                if (panel) {
-                    panel.classList.toggle('host-editing', isEditMode);
-                }
-
-                document.querySelectorAll(`.ship-card[data-team="${team}"]`).forEach(card => {
-                    const index = parseInt(card.dataset.shipIndex, 10);
-                    const isSunk = !!(shipStatuses[team] && shipStatuses[team][index]);
-                    card.classList.toggle('sunk', isSunk);
-                    card.classList.toggle('host-editable', isEditMode);
-                    card.title = isEditMode
-                        ? `Click to mark ${SHIP_LAYOUTS[index].name} ${isSunk ? 'active' : 'sunk'}`
-                        : `${SHIP_LAYOUTS[index].name}: ${isSunk ? 'Sunk' : 'Active'}`;
-                });
-            });
-        }
-
-        function syncShipStatusesFromTileDetails() {
-            tileDetails = normalizeTileDetails(tileDetails);
-            shipStatuses = normalizeShipStatuses(tileDetails._shipStatuses);
-        }
-
         // State management
         let isEditMode = false;
         let boardStates = {
@@ -2631,8 +2389,6 @@ canvas {
             team1: {},
             team2: {}
         };
-
-        let shipStatuses = defaultShipStatuses();
 
         let pendingMark = null;
 
@@ -2700,93 +2456,6 @@ canvas {
         function getDiscordTimestamp(date) {
             const unixSeconds = Math.floor(date.getTime() / 1000);
             return `<t:${unixSeconds}:F>`;
-        }
-
-
-        async function sendDiscordShipSunkUpdate({ team, shipIndex, timestamp }) {
-            if (!DISCORD_WEBHOOK_URL || DISCORD_WEBHOOK_URL.trim() === '') {
-                console.log('Discord webhook not configured. Skipping ship sunk notification.');
-                return;
-            }
-
-            const teamName = getTeamDisplayName(team);
-            const shipName = SHIP_LAYOUTS[shipIndex] ? SHIP_LAYOUTS[shipIndex].name : `Boat ${shipIndex + 1}`;
-            const shipSize = SHIP_LAYOUTS[shipIndex] ? SHIP_LAYOUTS[shipIndex].cells.length : 0;
-            const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
-            const discordTimestamp = getDiscordTimestamp(date);
-            const plainTimestamp = date.toLocaleString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-                second: '2-digit',
-                hour12: true
-            });
-
-            const title = `🚢 ${teamName.toUpperCase()} ${shipName.toUpperCase()} HAS SUNK!`;
-            const description = `💥 **SHIP DESTROYED!** ${teamName} ${shipName} has been sent to the depths.`;
-            const message = `${teamName} ${shipName} Has Sunk! - ${discordTimestamp} (${plainTimestamp})`;
-
-            try {
-                const response = await fetch(DISCORD_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username: 'Battleship Bingo',
-                        content: message,
-                        embeds: [
-                            {
-                                title,
-                                description,
-                                color: team === 'team1' ? 0xff4444 : 0x3b82f6,
-                                fields: [
-                                    {
-                                        name: '🚢 Ship',
-                                        value: shipName,
-                                        inline: true
-                                    },
-                                    {
-                                        name: '🎯 Team',
-                                        value: teamName,
-                                        inline: true
-                                    },
-                                    {
-                                        name: '📏 Size',
-                                        value: `${shipSize} tiles`,
-                                        inline: true
-                                    },
-                                    {
-                                        name: '🕒 Timestamp',
-                                        value: discordTimestamp,
-                                        inline: false
-                                    }
-                                ],
-                                footer: {
-                                    text: 'DripDrop 2026 Battleship Bingo'
-                                },
-                                timestamp: date.toISOString()
-                            }
-                        ],
-                        allowed_mentions: {
-                            parse: []
-                        }
-                    })
-                });
-
-                if (!response.ok) {
-                    const text = await response.text();
-                    console.error('Discord ship sunk webhook failed:', response.status, text);
-                    setSyncStatus('saved, but Discord ship webhook failed: ' + response.status, 'warn');
-                } else {
-                    console.log('Discord ship sunk webhook sent:', message);
-                }
-            } catch (err) {
-                console.error('Discord ship sunk webhook error:', err);
-                setSyncStatus('saved, but Discord ship webhook crashed: ' + (err.message || err), 'warn');
-            }
         }
 
         async function sendDiscordTileUpdate({ shootingTeam, coordinate, status, completedBy, timestamp }) {
@@ -2877,15 +2546,201 @@ canvas {
             }
         }
         
+
+        // Team roster
+        const ROSTER_SLOTS = 15;
+        let rosterState = {
+            team1: Array(ROSTER_SLOTS).fill(''),
+            team2: Array(ROSTER_SLOTS).fill('')
+        };
+
+        function defaultRosterState() {
+            return {
+                team1: Array(ROSTER_SLOTS).fill(''),
+                team2: Array(ROSTER_SLOTS).fill('')
+            };
+        }
+
+        function normalizeRosterState(value) {
+            const fallback = defaultRosterState();
+            if (!value || typeof value !== 'object') return fallback;
+
+            ['team1', 'team2'].forEach(team => {
+                if (!Array.isArray(value[team])) value[team] = [];
+                for (let i = 0; i < ROSTER_SLOTS; i++) {
+                    if (typeof value[team][i] !== 'string') value[team][i] = '';
+                }
+                value[team] = value[team].slice(0, ROSTER_SLOTS);
+                while (value[team].length < ROSTER_SLOTS) value[team].push('');
+            });
+
+            return value;
+        }
+
+        function escapeRosterValue(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function renderRosterSlots() {
+            const red = document.getElementById('redRosterSlots');
+            const blue = document.getElementById('blueRosterSlots');
+            if (!red || !blue) return;
+
+            const buildSlots = (teamKey) => {
+                return rosterState[teamKey].map((name, index) => `
+                    <div class="roster-slot">
+                        <div class="roster-slot-number">${index + 1}</div>
+                        <input
+                            class="roster-input"
+                            data-roster-team="${teamKey}"
+                            data-roster-index="${index}"
+                            value="${escapeRosterValue(name)}"
+                            placeholder="Player ${index + 1}"
+                            ${isEditMode ? '' : 'readonly'}
+                        >
+                    </div>
+                `).join('');
+            };
+
+            red.innerHTML = buildSlots('team1');
+            blue.innerHTML = buildSlots('team2');
+
+            const actions = document.querySelector('#rosterModal .roster-actions');
+            if (actions) actions.classList.toggle('host-only-hidden', !isEditMode);
+        }
+
+        function openRosterModal() {
+            renderRosterSlots();
+            document.getElementById('rosterModal').classList.add('active');
+        }
+
+        function closeRosterModal() {
+            document.getElementById('rosterModal').classList.remove('active');
+        }
+
+        function saveRosterFromModal() {
+            if (!isEditMode) return;
+
+            document.querySelectorAll('.roster-input').forEach(input => {
+                const team = input.dataset.rosterTeam;
+                const index = parseInt(input.dataset.rosterIndex, 10);
+                if (team && !Number.isNaN(index)) rosterState[team][index] = input.value.trim();
+            });
+
+            saveRosterState();
+            renderRosterSlots();
+        }
+
+        async function saveRosterState() {
+            rosterState = normalizeRosterState(rosterState);
+
+            try {
+                localStorage.setItem('battleshipRosterState', JSON.stringify(rosterState));
+            } catch (err) {
+                console.warn('Roster local save failed:', err);
+            }
+
+            if (!supabaseClient || !supabaseConnected) return false;
+
+            try {
+                await supabaseClient
+                    .from('battleship_roster')
+                    .upsert({
+                        id: 1,
+                        roster_state: rosterState,
+                        last_update: new Date().toISOString()
+                    }, { onConflict: 'id' });
+
+                setSyncStatus('roster saved at ' + new Date().toLocaleTimeString(), 'ok');
+                return true;
+            } catch (err) {
+                console.warn('Roster Supabase save failed, local roster still saved:', err);
+                setSyncStatus('roster saved locally, but Supabase roster table may need to be created', 'warn');
+                return false;
+            }
+        }
+
+        async function loadRosterState() {
+            let loadedLocal = false;
+
+            try {
+                const saved = localStorage.getItem('battleshipRosterState');
+                if (saved) {
+                    rosterState = normalizeRosterState(JSON.parse(saved));
+                    loadedLocal = true;
+                }
+            } catch (err) {
+                console.warn('Roster local load failed:', err);
+            }
+
+            if (!supabaseClient || !supabaseConnected) {
+                renderRosterSlots();
+                return;
+            }
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('battleship_roster')
+                    .select('id, roster_state, last_update')
+                    .eq('id', 1)
+                    .maybeSingle();
+
+                if (!error && data && data.roster_state) {
+                    rosterState = normalizeRosterState(data.roster_state);
+                    try { localStorage.setItem('battleshipRosterState', JSON.stringify(rosterState)); } catch (err) {}
+                } else if (!loadedLocal) {
+                    rosterState = defaultRosterState();
+                }
+            } catch (err) {
+                console.warn('Roster Supabase load failed, using local roster:', err);
+            }
+
+            renderRosterSlots();
+        }
+
+        function subscribeToRosterRealtime() {
+            if (!supabaseClient || !supabaseConnected) return;
+
+            try {
+                supabaseClient
+                    .channel('battleship_roster_realtime')
+                    .on(
+                        'postgres_changes',
+                        { event: '*', schema: 'public', table: 'battleship_roster' },
+                        (payload) => {
+                            if (payload.new && payload.new.roster_state) {
+                                rosterState = normalizeRosterState(payload.new.roster_state);
+                                try { localStorage.setItem('battleshipRosterState', JSON.stringify(rosterState)); } catch (err) {}
+                                renderRosterSlots();
+                                setSyncStatus('received roster update at ' + new Date().toLocaleTimeString(), 'ok');
+                            }
+                        }
+                    )
+                    .subscribe();
+            } catch (err) {
+                console.warn('Roster realtime subscribe failed:', err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const rosterModal = document.getElementById('rosterModal');
+            if (rosterModal) {
+                rosterModal.addEventListener('click', (e) => {
+                    if (e.target.id === 'rosterModal') closeRosterModal();
+                });
+            }
+        });
+
         // Initialize boards
         function initializeBoards() {
             createGrid('team1Grid', 'team1');
             createGrid('team2Grid', 'team2');
-            createShipStatusDisplay('team1ShipStatus', 'team1');
-            createShipStatusDisplay('team2ShipStatus', 'team2');
             loadState();
             updateLogs();
-            updateShipDisplays();
         }
         function createGrid(gridId, team) {
             const grid = document.getElementById(gridId);
@@ -3190,8 +3045,6 @@ canvas {
             boardStates = defaultBoardStates();
             shotLogs = defaultShotLogs();
             tileDetails = defaultTileDetails();
-            shipStatuses = defaultShipStatuses();
-            tileDetails._shipStatuses = normalizeShipStatuses(shipStatuses);
 
             updateAllCells();
             updateLogs();
@@ -3225,10 +3078,8 @@ canvas {
                             boardStates = normalizeBoardStates(payload.new.board_states);
                             shotLogs = normalizeShotLogs(payload.new.shot_logs);
                             tileDetails = normalizeTileDetails(payload.new.tile_details);
-                            syncShipStatusesFromTileDetails();
                             updateAllCells();
                             updateLogs();
-                            updateShipDisplays();
                             setSyncStatus('received realtime database update at ' + new Date().toLocaleTimeString(), 'ok');
                         }
                     }
@@ -3253,10 +3104,8 @@ canvas {
                         boardStates = normalizeBoardStates(payload.board_states);
                         shotLogs = normalizeShotLogs(payload.shot_logs);
                         tileDetails = normalizeTileDetails(payload.tile_details);
-                        syncShipStatusesFromTileDetails();
                         updateAllCells();
                         updateLogs();
-                        updateShipDisplays();
                         setSyncStatus('received instant broadcast update at ' + new Date().toLocaleTimeString(), 'ok');
                     }
                 })
@@ -3440,7 +3289,6 @@ canvas {
             boardStates = normalizeBoardStates(boardStates);
             shotLogs = normalizeShotLogs(shotLogs);
             tileDetails = normalizeTileDetails(tileDetails);
-            tileDetails._shipStatuses = normalizeShipStatuses(shipStatuses);
 
             try {
                 setSyncStatus('saving...', 'warn');
@@ -3467,10 +3315,8 @@ canvas {
                     boardStates = normalizeBoardStates(data.board_states);
                     shotLogs = normalizeShotLogs(data.shot_logs);
                     tileDetails = normalizeTileDetails(data.tile_details);
-                    syncShipStatusesFromTileDetails();
                     updateAllCells();
                     updateLogs();
-                    updateShipDisplays();
                 }
 
                 setSyncStatus('saved to Supabase at ' + new Date().toLocaleTimeString(), 'ok');
@@ -3523,7 +3369,7 @@ canvas {
                             id: 1,
                             board_states: defaultBoardStates(),
                             shot_logs: defaultShotLogs(),
-                            tile_details: Object.assign(defaultTileDetails(), { _shipStatuses: defaultShipStatuses() }),
+                            tile_details: defaultTileDetails(),
                             last_update: new Date().toISOString()
                         });
 
@@ -3536,20 +3382,16 @@ canvas {
                     boardStates = defaultBoardStates();
                     shotLogs = defaultShotLogs();
                     tileDetails = defaultTileDetails();
-                    shipStatuses = defaultShipStatuses();
-                    tileDetails._shipStatuses = normalizeShipStatuses(shipStatuses);
                     setSyncStatus('created initial row in Supabase', 'ok');
                 } else {
                     boardStates = normalizeBoardStates(data.board_states);
                     shotLogs = normalizeShotLogs(data.shot_logs);
                     tileDetails = normalizeTileDetails(data.tile_details);
-                    syncShipStatusesFromTileDetails();
                     setSyncStatus('loaded from Supabase at ' + new Date().toLocaleTimeString(), 'ok');
                 }
 
                 updateAllCells();
                 updateLogs();
-                updateShipDisplays();
 
                 subscribeToRealtime();
 
@@ -3675,7 +3517,6 @@ canvas {
             
             try {
                 updateAllCells();
-                updateShipDisplays();
             } catch (error) {
                 console.error('Error updating cells:', error);
             }
@@ -3686,6 +3527,7 @@ canvas {
                 console.log('Host mode status update skipped (Firebase not available)');
             }
             
+            renderRosterSlots();
             console.log('Edit mode entered successfully!');
         }
         
@@ -3698,7 +3540,7 @@ canvas {
             document.getElementById('globalResetBtn').style.display = 'none';
             
             updateAllCells();
-            updateShipDisplays();
+            renderRosterSlots();
             setHostModeStatus(false);
         }
         
@@ -3724,6 +3566,8 @@ canvas {
         });
 
         initializeBoards();
+        loadRosterState();
+        subscribeToRosterRealtime();
         listenForHostMode();
     </script>
 
@@ -3738,6 +3582,42 @@ document.addEventListener('DOMContentLoaded', () => {
             tip.innerHTML = '<span style="color:#ffcc33;">' + tile + ':</span> <span style="color:#ffffff;">' + task + '</span>';
         }
     });
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        document.querySelectorAll('.modal-content').forEach(modal => {
+            const hasSubmit =
+                modal.querySelector('button[type="submit"]') ||
+                modal.querySelector('.submit-btn') ||
+                modal.querySelector('.confirm-btn');
+
+            const input = modal.querySelector('input');
+
+            if (!hasSubmit && input) {
+                const btn = document.createElement('button');
+                btn.textContent = 'Submit';
+                btn.type = 'button';
+                btn.className = 'submit-btn';
+
+                btn.onclick = () => {
+                    const enterEvent = new KeyboardEvent('keydown', {
+                        key: 'Enter',
+                        code: 'Enter',
+                        keyCode: 13,
+                        which: 13,
+                        bubbles: true
+                    });
+                    input.dispatchEvent(enterEvent);
+                };
+
+                input.parentElement.appendChild(btn);
+            }
+        });
+    }, 100);
 });
 </script>
 
