@@ -890,10 +890,12 @@
             z-index: 2000;
             padding: 8px;
             min-width: 150px;
+            pointer-events: none;
         }
         
         .mark-context-menu.active {
             display: block;
+            pointer-events: auto;
         }
         
         .mark-option {
@@ -4012,15 +4014,21 @@ canvas {
             contextMenuTeam = team;
             contextMenuIndex = index;
             
-            // Position near mouse with offset to avoid immediate re-trigger
-            const x = event.clientX + window.pageXOffset;
-            const y = event.clientY + window.pageYOffset;
+            // Position near mouse using clientX/Y for fixed positioning
+            const x = event.clientX;
+            const y = event.clientY;
             
-            menu.style.left = x + 'px';
-            menu.style.top = y + 'px';
+            // Ensure menu stays within viewport
+            const menuWidth = 250;
+            const menuHeight = 200;
+            const adjustedX = Math.min(x, window.innerWidth - menuWidth);
+            const adjustedY = Math.min(y, window.innerHeight - menuHeight);
+            
+            menu.style.left = adjustedX + 'px';
+            menu.style.top = adjustedY + 'px';
             menu.classList.add('active');
             
-            console.log('Context menu shown at', x, y);
+            console.log('Context menu shown at', adjustedX, adjustedY);
             
             // Stop the click from immediately closing the menu
             event.stopPropagation();
