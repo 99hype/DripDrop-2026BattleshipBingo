@@ -2017,6 +2017,32 @@ canvas {
         cursor: default;
     }
 
+
+    .completed-by-select {
+        width: 100%;
+        padding: 12px;
+        background: #080c13;
+        border: 2px solid #44546d;
+        border-radius: 4px;
+        color: #ffffff;
+        font-family: 'RuneScape UF', 'RuneScape-UF', 'RuneScapeUF', monospace !important;
+        font-size: 1.1rem;
+        margin-bottom: 12px;
+    }
+
+    .completed-by-select:focus {
+        outline: none;
+        border-color: #ffd84a;
+    }
+
+    .completed-by-helper {
+        color: #ffd84a;
+        font-size: 0.92rem;
+        line-height: 1.25;
+        margin: 8px 0 12px 0;
+        text-align: center;
+    }
+
     .roster-save-btn {
         display: none;
         margin: 22px auto 0 auto;
@@ -2298,11 +2324,16 @@ canvas {
         <div class="modal-content">
             <h2 id="completedByTitle">Completed By</h2>
             <p style="color: var(--osrs-tan); margin-bottom: 20px;">
-                Enter the username for <span id="completedByCoordinate"></span>
+                Choose who completed <span id="completedByCoordinate"></span>
             </p>
             <div class="form-group">
-                <label for="completedByInput">Username / Player Name</label>
-                <input type="text" id="completedByInput" placeholder="Who completed this tile?">
+                <label for="completedBySelect">Roster Player</label>
+                <select id="completedBySelect" class="completed-by-select">
+                    <option value="">Select a roster player</option>
+                </select>
+                <div class="completed-by-helper" id="completedByHelper">Roster options are based on the team firing this shot.</div>
+                <label for="completedByInput">Manual Name / Override</label>
+                <input type="text" id="completedByInput" placeholder="Or type a player name here">
             </div>
         </div>
     </div>
@@ -2651,7 +2682,7 @@ canvas {
         }
 
 
-        const ROSTER_SLOT_COUNT = 12;
+        const ROSTER_SLOT_COUNT = 20;
 
         function defaultRosters() {
             return {
@@ -3233,6 +3264,70 @@ canvas {
             });
         });
         
+
+        function getRosterNamesForTeam(team) {
+            rosters = normalizeRosters(rosters);
+            if (!rosters[team]) return [];
+            const seen = new Set();
+            return rosters[team]
+                .map(name => (typeof name === 'string' ? name.trim() : ''))
+                .filter(name => {
+                    if (!name) return false;
+                    const key = name.toLowerCase();
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return true;
+                });
+        }
+
+        function populateCompletedBySelect(shootingTeam, existingName) {
+            const selectEl = document.getElementById('completedBySelect');
+            const inputEl = document.getElementById('completedByInput');
+            const helperEl = document.getElementById('completedByHelper');
+            if (!selectEl) return;
+
+            const names = getRosterNamesForTeam(shootingTeam);
+            const teamName = getTeamDisplayName(shootingTeam);
+            selectEl.innerHTML = '';
+
+            const placeholder = document.createElement('option');
+            placeholder.value = '';
+            placeholder.textContent = names.length ? `Select ${teamName} player` : `No ${teamName} roster names saved`;
+            selectEl.appendChild(placeholder);
+
+            names.forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                selectEl.appendChild(option);
+            });
+
+            const customOption = document.createElement('option');
+            customOption.value = '__custom__';
+            customOption.textContent = 'Manual entry / override';
+            selectEl.appendChild(customOption);
+
+            const cleanExisting = existingName && existingName.trim() ? existingName.trim() : '';
+            const exactMatch = names.find(name => name.toLowerCase() === cleanExisting.toLowerCase());
+
+            if (exactMatch) {
+                selectEl.value = exactMatch;
+                if (inputEl) inputEl.value = exactMatch;
+            } else if (cleanExisting) {
+                selectEl.value = '__custom__';
+                if (inputEl) inputEl.value = cleanExisting;
+            } else {
+                selectEl.value = '';
+                if (inputEl) inputEl.value = '';
+            }
+
+            if (helperEl) {
+                helperEl.textContent = names.length
+                    ? `${teamName} is firing. Pick from their roster or type a manual override.`
+                    : `${teamName} is firing, but no roster names are saved yet. Type the name manually or update the Roster.`;
+            }
+        }
+
         function applyMark(team, index, markType) {
             console.log('applyMark called:', { team, index, markType, isEditMode });
 
@@ -3253,7 +3348,9 @@ canvas {
             const titleEl = document.getElementById('completedByTitle');
             const coordEl = document.getElementById('completedByCoordinate');
             const inputEl = document.getElementById('completedByInput');
+            const selectEl = document.getElementById('completedBySelect');
             const modalEl = document.getElementById('completedByModal');
+            const shootingTeam = getShootingTeam(team);
 
             if (!titleEl || !coordEl || !inputEl || !modalEl) {
                 console.error('Completed By modal elements missing. Applying mark without name.');
@@ -3262,11 +3359,14 @@ canvas {
             }
 
             titleEl.textContent = markType === 'hit' ? 'Mark Hit' : 'Mark Miss';
-            coordEl.textContent = coordinate;
-            inputEl.value = existingName;
+            coordEl.textContent = `${coordinate} (${getTeamDisplayName(shootingTeam)} shot)`;
+            populateCompletedBySelect(shootingTeam, existingName);
             modalEl.classList.add('active');
 
-            setTimeout(() => inputEl.focus(), 100);
+            setTimeout(() => {
+                if (selectEl && selectEl.options.length > 1) selectEl.focus();
+                else inputEl.focus();
+            }, 100);
         }
 
         function closeCompletedByModal() {
@@ -3279,7 +3379,12 @@ canvas {
             if (!pendingMark) return;
 
             const inputEl = document.getElementById('completedByInput');
-            const completedBy = inputEl ? inputEl.value.trim() : '';
+            const selectEl = document.getElementById('completedBySelect');
+            let completedBy = inputEl ? inputEl.value.trim() : '';
+
+            if (selectEl && selectEl.value && selectEl.value !== '__custom__') {
+                completedBy = selectEl.value.trim();
+            }
 
             completeMark(pendingMark.team, pendingMark.index, pendingMark.markType, completedBy);
             closeCompletedByModal();
@@ -3556,6 +3661,20 @@ canvas {
                 completedByInput.addEventListener('keypress', (e) => {
                     if (e.key === 'Enter') {
                         confirmCompletedBy();
+                    }
+                });
+            }
+
+            const completedBySelect = document.getElementById('completedBySelect');
+            if (completedBySelect) {
+                completedBySelect.addEventListener('change', () => {
+                    const inputEl = document.getElementById('completedByInput');
+                    if (!inputEl) return;
+                    if (completedBySelect.value && completedBySelect.value !== '__custom__') {
+                        inputEl.value = completedBySelect.value;
+                    } else if (completedBySelect.value === '__custom__') {
+                        inputEl.focus();
+                        inputEl.select();
                     }
                 });
             }
