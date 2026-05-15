@@ -232,15 +232,24 @@
         }
         
         .boards-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
+            display: flex;
+            gap: 30px;
+            flex-wrap: nowrap;
+            justify-content: center;
             margin-bottom: 40px;
+            align-items: flex-start;
+        }
+        
+        @media (max-width: 1800px) {
+            .boards-container {
+                flex-wrap: wrap;
+                gap: 40px;
+            }
         }
         
         @media (max-width: 1200px) {
             .boards-container {
-                grid-template-columns: 1fr;
+                gap: 40px;
             }
         }
         
@@ -629,6 +638,80 @@
             font-size: 12px;
         }
         
+        .grid-container {
+            position: relative;
+        }
+        
+        .roster-panel {
+            background: rgba(0,0,0,0.3);
+            border: 2px solid var(--osrs-brown);
+            border-radius: 8px;
+            padding: 16px;
+            min-width: 180px;
+            max-width: 220px;
+            flex-shrink: 0;
+        }
+        
+        .roster-title {
+            font-family: 'RuneScape UF', 'RuneScape-UF', 'RuneScapeUF', sans-serif;
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--osrs-yellow);
+            text-align: center;
+            margin-bottom: 12px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        .roster-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .roster-player {
+            font-family: 'RuneScape UF', 'RuneScape-UF', 'RuneScapeUF', sans-serif;
+            font-size: 0.9rem;
+            color: var(--osrs-tan);
+            padding: 8px 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            border: 1px solid rgba(255,216,74,0.2);
+        }
+        
+        .roster-empty {
+            font-family: 'RuneScape UF', 'RuneScape-UF', 'RuneScapeUF', sans-serif;
+            font-size: 0.85rem;
+            color: #888;
+            text-align: center;
+            padding: 12px;
+            font-style: italic;
+        }
+        
+        .red-roster {
+            border-color: rgba(255, 90, 90, 0.6);
+            order: 1;
+        }
+        
+        .red-team-board {
+            order: 2;
+        }
+        
+        .blue-team-board {
+            order: 3;
+        }
+        
+        .blue-roster {
+            border-color: rgba(90, 170, 255, 0.6);
+            order: 4;
+        }
+        
+        /* Hide rosters on narrow screens */
+        @media (max-width: 1800px) {
+            .roster-panel {
+                display: none;
+            }
+        }
+
         .grid-container {
             position: relative;
             display: inline-block;
@@ -2590,11 +2673,19 @@ canvas {
         </div>
         
         <div class="boards-container">
+            <div class="roster-panel red-roster" id="redRosterPanel">
+                <h3 class="roster-title">RED ROSTER</h3>
+                <div class="roster-list" id="redRosterList">
+                    <div class="roster-empty">No roster set</div>
+                </div>
+            </div>
+            
             <div class="board-wrapper red-team-board">
                 <div class="board-header">
                     <h2 class="board-title red-team-title">RED TEAM <span class="team-counter" id="redTeamCounter">0 tiles</span></h2>
                 </div>
                 <div class="ship-status-panel" id="team1ShipStatus"></div>
+                
                 <div class="grid-container">
                     <div class="col-labels">
                         <div class="col-label">1</div>
@@ -2629,6 +2720,7 @@ canvas {
                         <div class="grid" id="team1Grid"></div>
                     </div>
                 </div>
+                
                 <div class="legend">
                     <div class="legend-item">
                         <div class="legend-icon hit">
@@ -2660,6 +2752,7 @@ canvas {
                     <h2 class="board-title blue-team-title">BLUE TEAM <span class="team-counter" id="blueTeamCounter">0 tiles</span></h2>
                 </div>
                 <div class="ship-status-panel" id="team2ShipStatus"></div>
+                
                 <div class="grid-container">
                     <div class="col-labels">
                         <div class="col-label">1</div>
@@ -2694,6 +2787,7 @@ canvas {
                         <div class="grid" id="team2Grid"></div>
                     </div>
                 </div>
+                
                 <div class="legend">
                     <div class="legend-item">
                         <div class="legend-icon hit">
@@ -2717,6 +2811,13 @@ canvas {
                     <div id="team2Log" class="log-entries">
                         <div class="log-empty">No shots fired yet</div>
                     </div>
+                </div>
+            </div>
+            
+            <div class="roster-panel blue-roster" id="blueRosterPanel">
+                <h3 class="roster-title">BLUE ROSTER</h3>
+                <div class="roster-list" id="blueRosterList">
+                    <div class="roster-empty">No roster set</div>
                 </div>
             </div>
         </div>
@@ -3286,6 +3387,7 @@ canvas {
         function syncRostersFromTileDetails() {
             tileDetails = normalizeTileDetails(tileDetails);
             rosters = normalizeRosters(tileDetails._rosters);
+            updateRosterDisplays();
         }
 
         function getRosterRowsForDisplay(team) {
@@ -3337,8 +3439,21 @@ canvas {
 
                     const isLastInput = i === inputs.length - 1;
                     if (isLastInput && input.value.trim()) {
+                        // Save current cursor position and value
+                        const currentValue = input.value;
+                        const cursorPos = input.selectionStart;
+                        
                         createRosterSlots(team);
-                        // Auto-focus removed - cursor stays in current box
+                        
+                        // Restore focus to the same input (now recreated)
+                        setTimeout(() => {
+                            const newInputs = Array.from(document.querySelectorAll(`.roster-input[data-team="${team}"]`));
+                            const sameInput = newInputs[i];
+                            if (sameInput) {
+                                sameInput.focus();
+                                sameInput.setSelectionRange(cursorPos, cursorPos);
+                            }
+                        }, 0);
                     }
                 });
                 input.addEventListener('keydown', (event) => {
@@ -3400,6 +3515,7 @@ canvas {
             tileDetails = normalizeTileDetails(tileDetails);
             tileDetails._rosters = normalizeRosters(rosters);
             createRosterDisplay();
+            updateRosterDisplays();
             await saveState();
         }
 
@@ -3516,6 +3632,36 @@ canvas {
                         : `${SHIP_LAYOUTS[index].name}: ${isSunk ? 'Sunk' : 'Active'}`;
                 });
             });
+        }
+        
+        function updateRosterDisplays() {
+            rosters = normalizeRosters(rosters);
+            
+            // Update red team roster
+            const redList = document.getElementById('redRosterList');
+            if (redList) {
+                const redTeam = rosters.team1 || [];
+                if (redTeam.length === 0) {
+                    redList.innerHTML = '<div class="roster-empty">No roster set</div>';
+                } else {
+                    redList.innerHTML = redTeam
+                        .map(name => `<div class="roster-player">${name}</div>`)
+                        .join('');
+                }
+            }
+            
+            // Update blue team roster
+            const blueList = document.getElementById('blueRosterList');
+            if (blueList) {
+                const blueTeam = rosters.team2 || [];
+                if (blueTeam.length === 0) {
+                    blueList.innerHTML = '<div class="roster-empty">No roster set</div>';
+                } else {
+                    blueList.innerHTML = blueTeam
+                        .map(name => `<div class="roster-player">${name}</div>`)
+                        .join('');
+                }
+            }
         }
 
         function syncShipStatusesFromTileDetails() {
@@ -4510,6 +4656,9 @@ canvas {
                     }
                 });
             }
+            
+            // Initialize roster displays
+            updateRosterDisplays();
         });
 
 
