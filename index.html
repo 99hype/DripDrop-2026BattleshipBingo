@@ -2071,6 +2071,35 @@ canvas {
     }
 </style>
 
+
+<style id="delayed-webhook-submit-patch">
+    .completed-by-actions {
+        display: flex !important;
+        gap: 14px;
+        margin-top: 24px;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .completed-by-actions .btn {
+        display: inline-flex !important;
+        min-width: 170px;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.15rem !important;
+        padding: 14px 22px !important;
+    }
+
+    .completed-by-submit-btn {
+        background: linear-gradient(180deg, #ffb82e 0%, #c46b00 100%) !important;
+        border-color: #ffd84a !important;
+    }
+
+    .completed-by-cancel-btn {
+        background: linear-gradient(180deg, #39465f 0%, #1d2738 100%) !important;
+    }
+</style>
+
 </head>
 <body>
     <div class="container">
@@ -2334,6 +2363,10 @@ canvas {
                 <div class="completed-by-helper" id="completedByHelper">Roster options are based on the team firing this shot.</div>
                 <label for="completedByInput">Manual Name / Override</label>
                 <input type="text" id="completedByInput" placeholder="Or type a player name here">
+            </div>
+            <div class="completed-by-actions">
+                <button class="btn btn-primary completed-by-submit-btn" onclick="confirmCompletedBy()">Submit</button>
+                <button class="btn btn-secondary completed-by-cancel-btn" onclick="closeCompletedByModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -2882,11 +2915,13 @@ canvas {
             saveState();
 
             if (isNowSunk) {
-                sendDiscordShipSunkUpdate({
+                queueDiscordShipSunkUpdate({
                     team,
                     shipIndex: index,
                     timestamp: new Date()
                 });
+            } else {
+                cancelPendingShipWebhook(team, index);
             }
         }
 
@@ -3001,6 +3036,105 @@ canvas {
         function getDiscordTimestamp(date) {
             const unixSeconds = Math.floor(date.getTime() / 1000);
             return `<t:${unixSeconds}:F>`;
+        }
+
+        const DISCORD_WEBHOOK_DELAY_MS = 5000;
+        const pendingDiscordTimers = {
+            tiles: {},
+            ships: {}
+        };
+
+        function getTileWebhookKey(team, index) {
+            return `${team}:${index}`;
+        }
+
+        function getShipWebhookKey(team, index) {
+            return `${team}:${index}`;
+        }
+
+        function cancelPendingTileWebhook(team, index) {
+            const key = getTileWebhookKey(team, index);
+            if (pendingDiscordTimers.tiles[key]) {
+                clearTimeout(pendingDiscordTimers.tiles[key]);
+                delete pendingDiscordTimers.tiles[key];
+                console.log('Cancelled pending Discord tile webhook:', key);
+            }
+        }
+
+        function cancelPendingShipWebhook(team, index) {
+            const key = getShipWebhookKey(team, index);
+            if (pendingDiscordTimers.ships[key]) {
+                clearTimeout(pendingDiscordTimers.ships[key]);
+                delete pendingDiscordTimers.ships[key];
+                console.log('Cancelled pending Discord ship webhook:', key);
+            }
+        }
+
+        function cancelAllPendingDiscordWebhooks() {
+            Object.keys(pendingDiscordTimers.tiles).forEach(key => {
+                clearTimeout(pendingDiscordTimers.tiles[key]);
+                delete pendingDiscordTimers.tiles[key];
+            });
+            Object.keys(pendingDiscordTimers.ships).forEach(key => {
+                clearTimeout(pendingDiscordTimers.ships[key]);
+                delete pendingDiscordTimers.ships[key];
+            });
+        }
+
+        function queueDiscordTileUpdate({ team, index, shootingTeam, coordinate, status, completedBy, timestamp }) {
+            cancelPendingTileWebhook(team, index);
+            const key = getTileWebhookKey(team, index);
+            const expectedStatus = status;
+            const expectedCompletedBy = completedBy || '';
+
+            pendingDiscordTimers.tiles[key] = setTimeout(() => {
+                delete pendingDiscordTimers.tiles[key];
+
+                const stillMarked = boardStates[team] && boardStates[team][index] === expectedStatus;
+                const details = tileDetails[team] && tileDetails[team][coordinate];
+                const detailsMatch = details &&
+                    details.status === expectedStatus &&
+                    details.shootingTeam === shootingTeam &&
+                    (details.completedBy || '') === expectedCompletedBy;
+
+                if (!stillMarked || !detailsMatch) {
+                    console.log('Skipped Discord tile webhook because mark was changed or cleared:', key);
+                    return;
+                }
+
+                sendDiscordTileUpdate({
+                    shootingTeam,
+                    coordinate,
+                    status: expectedStatus,
+                    completedBy: expectedCompletedBy,
+                    timestamp
+                });
+            }, DISCORD_WEBHOOK_DELAY_MS);
+
+            setSyncStatus('saved; Discord tile alert queued for 5 seconds', 'ok');
+        }
+
+        function queueDiscordShipSunkUpdate({ team, shipIndex, timestamp }) {
+            cancelPendingShipWebhook(team, shipIndex);
+            const key = getShipWebhookKey(team, shipIndex);
+
+            pendingDiscordTimers.ships[key] = setTimeout(() => {
+                delete pendingDiscordTimers.ships[key];
+
+                const stillSunk = !!(shipStatuses[team] && shipStatuses[team][shipIndex]);
+                if (!stillSunk) {
+                    console.log('Skipped Discord ship webhook because ship was toggled active:', key);
+                    return;
+                }
+
+                sendDiscordShipSunkUpdate({
+                    team,
+                    shipIndex,
+                    timestamp
+                });
+            }, DISCORD_WEBHOOK_DELAY_MS);
+
+            setSyncStatus('saved; Discord ship alert queued for 5 seconds', 'ok');
         }
 
 
@@ -3414,6 +3548,7 @@ canvas {
             }
 
             const coordinate = getCoordinate(index);
+            cancelPendingTileWebhook(team, index);
 
             ['team1', 'team2'].forEach(logTeam => {
                 if (!shotLogs[logTeam]) shotLogs[logTeam] = [];
@@ -3447,13 +3582,17 @@ canvas {
             saveState();
 
             if (newState === 'hit' || newState === 'miss') {
-                sendDiscordTileUpdate({
+                queueDiscordTileUpdate({
+                    team,
+                    index,
                     shootingTeam,
                     coordinate,
                     status: newState,
                     completedBy: completedBy || '',
                     timestamp: timestamp
                 });
+            } else {
+                cancelPendingTileWebhook(team, index);
             }
         }
         function updateCell(team, index, state) {
@@ -3562,6 +3701,8 @@ canvas {
 
         function confirmResetAll() {
             if (!isEditMode) return;
+
+            cancelAllPendingDiscordWebhooks();
 
             boardStates = defaultBoardStates();
             shotLogs = defaultShotLogs();
