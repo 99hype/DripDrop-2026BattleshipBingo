@@ -2230,6 +2230,330 @@ canvas {
         text-transform: uppercase;
     }
 
+    /* Map Builder Styles */
+    .map-builder-section {
+        margin: 60px auto;
+        padding: 30px;
+        background: linear-gradient(180deg, rgba(31, 28, 25, 0.95) 0%, rgba(20, 18, 16, 0.98) 100%);
+        border: 3px solid var(--osrs-brown);
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+        max-width: 1600px;
+    }
+
+    .map-builder-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .map-builder-header h2 {
+        font-family: 'RuneScape UF', 'RuneScape-UF', 'RuneScapeUF', sans-serif;
+        font-size: 2.2rem;
+        color: var(--osrs-yellow);
+        text-shadow: 2px 2px 0 var(--osrs-orange), 3px 3px 0 var(--osrs-brown);
+        margin-bottom: 10px;
+    }
+
+    .map-builder-subtitle {
+        font-size: 0.95rem;
+        color: #bfa169;
+        text-shadow: 1px 1px 0 #000;
+        margin-bottom: 10px;
+        font-style: italic;
+    }
+
+    .map-builder-timestamp {
+        font-size: 1.1rem;
+        color: var(--osrs-tan);
+        text-shadow: 1px 1px 0 #000;
+        font-family: 'RuneScape UF', monospace;
+    }
+
+    .map-builder-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .map-builder-controls {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        width: 100%;
+        padding: 0 20px;
+    }
+
+    .map-builder-controls .btn {
+        min-width: 180px;
+        padding: 12px 24px;
+        font-size: 1rem;
+    }
+
+    .map-builder-content-wrapper {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 30px;
+        width: 100%;
+    }
+
+    .ship-palette {
+        background: rgba(0,0,0,0.3);
+        padding: 20px;
+        border: 2px solid var(--osrs-brown);
+        border-radius: 6px;
+    }
+
+    .ship-palette h3 {
+        color: var(--osrs-yellow);
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+        text-align: center;
+        text-shadow: 1px 1px 0 #000;
+    }
+
+    .palette-ships {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .palette-ship {
+        background: rgba(50,50,70,0.4);
+        border: 2px solid var(--osrs-brown);
+        border-radius: 4px;
+        padding: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        user-select: none;
+    }
+
+    .palette-ship:hover {
+        background: rgba(70,70,90,0.5);
+        border-color: var(--osrs-yellow);
+        transform: translateY(-2px);
+    }
+
+    .palette-ship.selected {
+        background: rgba(255,216,74,0.3);
+        border-color: var(--osrs-yellow);
+        border-width: 3px;
+        box-shadow: 0 0 15px rgba(255,216,74,0.5);
+    }
+
+    .palette-ship.placed {
+        opacity: 0.5;
+    }
+
+    .palette-ship.placed::after {
+        content: " ✓ Placed";
+        color: #4CAF50;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+
+    .palette-ship.selected.placed::after {
+        content: " ✓ Selected";
+        color: var(--osrs-yellow);
+    }
+
+    .palette-ship-name {
+        color: var(--osrs-yellow);
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+        text-shadow: 1px 1px 0 #000;
+    }
+
+    .palette-ship-size {
+        color: var(--osrs-tan);
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
+
+    .palette-ship-grid {
+        display: grid;
+        gap: 2px;
+        margin-top: 8px;
+    }
+
+    .palette-ship-cell {
+        width: 16px;
+        height: 16px;
+        background: var(--osrs-yellow);
+        border: 1px solid var(--osrs-brown);
+        border-radius: 2px;
+    }
+
+    /* Unique colors for each ship */
+    .palette-ship[data-ship-index="0"] .palette-ship-cell {
+        background: #FF4444; /* Bright Red - Crosshair */
+    }
+
+    .palette-ship[data-ship-index="1"] .palette-ship-cell {
+        background: #2196F3; /* Bright Blue - Hammerhead */
+    }
+
+    .palette-ship[data-ship-index="2"] .palette-ship-cell {
+        background: #4CAF50; /* Green - Dual Striker */
+    }
+
+    .palette-ship[data-ship-index="3"] .palette-ship-cell {
+        background: #FFC107; /* Amber/Gold - The L */
+    }
+
+    .palette-ship[data-ship-index="4"] .palette-ship-cell {
+        background: #FF6F00; /* Deep Orange - The Line */
+    }
+
+    .palette-ship[data-ship-index="5"] .palette-ship-cell {
+        background: #9C27B0; /* Purple - The Big O */
+    }
+
+    .map-builder-board {
+        background: rgba(0,0,0,0.2);
+        padding: 20px;
+        border: 2px solid var(--osrs-brown);
+        border-radius: 6px;
+    }
+
+    .map-builder-board .grid {
+        background: rgba(20,20,30,0.6);
+    }
+
+    .map-builder-board .cell {
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .map-builder-board .cell:hover {
+        background: rgba(255,216,74,0.2);
+    }
+
+    .map-builder-board .cell.ship-placed {
+        background: linear-gradient(135deg, rgba(255,216,74,0.6), rgba(255,152,0,0.6));
+        border-color: var(--osrs-yellow);
+        cursor: pointer;
+        position: relative;
+    }
+
+    /* Unique colors for each ship on grid */
+    .map-builder-board .cell.ship-placed[data-ship-index="0"] {
+        background: linear-gradient(135deg, rgba(255,68,68,0.85), rgba(255,68,68,0.65));
+        border-color: #FF4444;
+    }
+
+    .map-builder-board .cell.ship-placed[data-ship-index="1"] {
+        background: linear-gradient(135deg, rgba(33,150,243,0.85), rgba(33,150,243,0.65));
+        border-color: #2196F3;
+    }
+
+    .map-builder-board .cell.ship-placed[data-ship-index="2"] {
+        background: linear-gradient(135deg, rgba(76,175,80,0.85), rgba(76,175,80,0.65));
+        border-color: #4CAF50;
+    }
+
+    .map-builder-board .cell.ship-placed[data-ship-index="3"] {
+        background: linear-gradient(135deg, rgba(255,193,7,0.85), rgba(255,193,7,0.65));
+        border-color: #FFC107;
+    }
+
+    .map-builder-board .cell.ship-placed[data-ship-index="4"] {
+        background: linear-gradient(135deg, rgba(255,111,0,0.85), rgba(255,111,0,0.65));
+        border-color: #FF6F00;
+    }
+
+    .map-builder-board .cell.ship-placed[data-ship-index="5"] {
+        background: linear-gradient(135deg, rgba(156,39,176,0.85), rgba(156,39,176,0.65));
+        border-color: #9C27B0;
+    }
+
+    .map-builder-board .cell.ship-placed:hover {
+        background: linear-gradient(135deg, rgba(255,216,74,0.8), rgba(255,152,0,0.8));
+        box-shadow: 0 0 10px rgba(255,216,74,0.5);
+    }
+
+    .map-builder-board .cell.ship-placed::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 8px;
+        height: 8px;
+        background: rgba(255,255,255,0.5);
+        border-radius: 50%;
+    }
+
+    .map-builder-board .cell.ship-preview {
+        background: rgba(76,175,80,0.4);
+        border-color: #4CAF50;
+        animation: pulse 1s infinite;
+    }
+
+    /* Colored previews for each ship */
+    .map-builder-board .cell.ship-preview[data-preview-ship="0"] {
+        background: rgba(255,68,68,0.5);
+        border-color: #FF4444;
+    }
+
+    .map-builder-board .cell.ship-preview[data-preview-ship="1"] {
+        background: rgba(33,150,243,0.5);
+        border-color: #2196F3;
+    }
+
+    .map-builder-board .cell.ship-preview[data-preview-ship="2"] {
+        background: rgba(76,175,80,0.5);
+        border-color: #4CAF50;
+    }
+
+    .map-builder-board .cell.ship-preview[data-preview-ship="3"] {
+        background: rgba(255,193,7,0.5);
+        border-color: #FFC107;
+    }
+
+    .map-builder-board .cell.ship-preview[data-preview-ship="4"] {
+        background: rgba(255,111,0,0.5);
+        border-color: #FF6F00;
+    }
+
+    .map-builder-board .cell.ship-preview[data-preview-ship="5"] {
+        background: rgba(156,39,176,0.5);
+        border-color: #9C27B0;
+    }
+
+    .map-builder-board .cell.ship-preview.invalid {
+        background: rgba(244,67,54,0.4);
+        border-color: #f44336;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 0.6;
+        }
+        50% {
+            opacity: 1;
+        }
+    }
+
+    .map-builder-board .cell.drag-over {
+        background: rgba(255,216,74,0.3);
+        border-color: var(--osrs-yellow);
+    }
+
+    @media (max-width: 1200px) {
+        .map-builder-content-wrapper {
+            grid-template-columns: 1fr;
+        }
+        
+        .ship-palette {
+            order: 2;
+        }
+        
+        .map-builder-board {
+            order: 1;
+        }
+    }
+
     .tile-tooltip-value {
         color: #ffffff;
         font-size: 1.04rem;
@@ -2258,6 +2582,7 @@ canvas {
             <button class="btn utility-btn" onclick="openTaskListModal()">See Full Task List</button>
             <button class="btn utility-btn" onclick="openRulesModal()">Rules</button>
             <button class="btn utility-btn" onclick="openRosterModal()">Roster</button>
+            <button class="btn utility-btn" onclick="toggleMapBuilder()">Map Builder</button>
             <button class="btn" id="adminBtn">Host Mode</button>
             <button class="btn global-reset-btn" id="globalResetBtn" onclick="showGlobalResetModal()" style="display: none;">Reset All</button>
         </div>
@@ -2389,6 +2714,66 @@ canvas {
                     <h3>Shots Fired - BLUE TEAM</h3>
                     <div id="team2Log" class="log-entries">
                         <div class="log-empty">No shots fired yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Map Builder Section -->
+        <div class="map-builder-section" id="mapBuilderSection" style="display: none;">
+            <div class="map-builder-header">
+                <h2>Map Builder</h2>
+                <div class="map-builder-subtitle">Click a ship to select • Hover to preview • Click grid to place • Click placed ship to remove</div>
+                <div class="map-builder-timestamp" id="mapBuilderTimestamp"></div>
+            </div>
+            
+            <div class="map-builder-container">
+                <div class="map-builder-controls">
+                    <button class="btn btn-secondary" onclick="resetMapBuilder()">Reset Map</button>
+                    <button class="btn btn-secondary" onclick="clearAllShips()">Clear All Ships</button>
+                </div>
+                
+                <div class="map-builder-content-wrapper">
+                    <div class="ship-palette">
+                        <h3>Available Ships</h3>
+                        <div class="palette-ships" id="paletteShips"></div>
+                    </div>
+                    
+                    <div class="map-builder-board">
+                        <div class="grid-container">
+                            <div class="col-labels">
+                                <div class="col-label">1</div>
+                                <div class="col-label">2</div>
+                                <div class="col-label">3</div>
+                                <div class="col-label">4</div>
+                                <div class="col-label">5</div>
+                                <div class="col-label">6</div>
+                                <div class="col-label">7</div>
+                                <div class="col-label">8</div>
+                                <div class="col-label">9</div>
+                                <div class="col-label">10</div>
+                                <div class="col-label">11</div>
+                                <div class="col-label">12</div>
+                                <div class="col-label">13</div>
+                            </div>
+                            <div class="grid-with-labels">
+                                <div class="row-labels">
+                                    <div class="row-label">A</div>
+                                    <div class="row-label">B</div>
+                                    <div class="row-label">C</div>
+                                    <div class="row-label">D</div>
+                                    <div class="row-label">E</div>
+                                    <div class="row-label">F</div>
+                                    <div class="row-label">G</div>
+                                    <div class="row-label">H</div>
+                                    <div class="row-label">I</div>
+                                    <div class="row-label">J</div>
+                                    <div class="row-label">K</div>
+                                    <div class="row-label">L</div>
+                                </div>
+                                <div class="grid" id="mapBuilderGrid"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -4540,8 +4925,289 @@ canvas {
             }
         });
 
+        // Map Builder Functionality
+        let mapBuilderState = {
+            placedShips: new Map(), // shipIndex -> {row, col, cells}
+            selectedShip: null
+        };
+
+        function toggleMapBuilder() {
+            const section = document.getElementById('mapBuilderSection');
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                section.style.display = 'none';
+            }
+        }
+
+        function initMapBuilder() {
+            const grid = document.getElementById('mapBuilderGrid');
+            const palette = document.getElementById('paletteShips');
+            
+            // Create grid
+            for (let row = 0; row < 12; row++) {
+                for (let col = 0; col < 13; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    
+                    // Hover to show preview
+                    cell.addEventListener('mouseenter', () => {
+                        if (mapBuilderState.selectedShip !== null) {
+                            showShipPreview(mapBuilderState.selectedShip, parseInt(row), parseInt(col));
+                        }
+                    });
+                    
+                    cell.addEventListener('mouseleave', () => {
+                        clearShipPreview();
+                    });
+                    
+                    // Click to place or remove
+                    cell.addEventListener('click', () => {
+                        // If clicking on a placed ship, remove it
+                        if (cell.dataset.shipIndex !== undefined) {
+                            clearShipFromGrid(parseInt(cell.dataset.shipIndex));
+                        }
+                        // If a ship is selected, place it
+                        else if (mapBuilderState.selectedShip !== null) {
+                            placeShipOnGrid(mapBuilderState.selectedShip, parseInt(row), parseInt(col));
+                        }
+                    });
+                    
+                    grid.appendChild(cell);
+                }
+            }
+            
+            // Create ship palette
+            SHIP_LAYOUTS.forEach((layout, index) => {
+                const shipDiv = document.createElement('div');
+                shipDiv.className = 'palette-ship';
+                shipDiv.dataset.shipIndex = index;
+                
+                const name = document.createElement('div');
+                name.className = 'palette-ship-name';
+                name.textContent = `Boat ${index + 1}: ${layout.name}`;
+                
+                const size = document.createElement('div');
+                size.className = 'palette-ship-size';
+                size.textContent = `${layout.cells.length} tiles`;
+                
+                const bounds = getShipBounds(layout);
+                const gridDiv = document.createElement('div');
+                gridDiv.className = 'palette-ship-grid';
+                gridDiv.style.gridTemplateColumns = `repeat(${bounds.cols}, 16px)`;
+                gridDiv.style.gridTemplateRows = `repeat(${bounds.rows}, 16px)`;
+                
+                const filled = new Set(layout.cells.map(([r, c]) => `${r},${c}`));
+                for (let r = 0; r < bounds.rows; r++) {
+                    for (let c = 0; c < bounds.cols; c++) {
+                        const cell = document.createElement('div');
+                        if (filled.has(`${r},${c}`)) {
+                            cell.className = 'palette-ship-cell';
+                        } else {
+                            cell.style.background = 'transparent';
+                            cell.style.border = 'none';
+                        }
+                        gridDiv.appendChild(cell);
+                    }
+                }
+                
+                shipDiv.appendChild(name);
+                shipDiv.appendChild(size);
+                shipDiv.appendChild(gridDiv);
+                
+                // Click to select ship
+                shipDiv.addEventListener('click', () => {
+                    selectShip(index);
+                });
+                
+                palette.appendChild(shipDiv);
+            });
+            
+            updateMapBuilderTimestamp();
+            setInterval(updateMapBuilderTimestamp, 1000);
+        }
+
+        function selectShip(shipIndex) {
+            // Deselect all ships
+            document.querySelectorAll('.palette-ship').forEach(ship => {
+                ship.classList.remove('selected');
+            });
+            
+            // Select this ship
+            mapBuilderState.selectedShip = shipIndex;
+            const paletteShip = document.querySelector(`.palette-ship[data-ship-index="${shipIndex}"]`);
+            if (paletteShip) {
+                paletteShip.classList.add('selected');
+            }
+        }
+
+        function showShipPreview(shipIndex, startRow, startCol) {
+            const layout = SHIP_LAYOUTS[shipIndex];
+            const grid = document.getElementById('mapBuilderGrid');
+            
+            // Clear any existing preview
+            clearShipPreview();
+            
+            // Calculate ship cells
+            const shipCells = layout.cells.map(([r, c]) => [startRow + r, startCol + c]);
+            
+            // Check if placement is valid
+            let isValid = true;
+            for (const [r, c] of shipCells) {
+                if (r < 0 || r >= 12 || c < 0 || c >= 13) {
+                    isValid = false;
+                    break;
+                }
+                
+                const cell = grid.children[r * 13 + c];
+                if (cell.classList.contains('ship-placed') && parseInt(cell.dataset.shipIndex) !== shipIndex) {
+                    isValid = false;
+                    break;
+                }
+            }
+            
+            // Show preview
+            shipCells.forEach(([r, c]) => {
+                if (r >= 0 && r < 12 && c >= 0 && c < 13) {
+                    const cell = grid.children[r * 13 + c];
+                    if (!cell.classList.contains('ship-placed')) {
+                        cell.classList.add('ship-preview');
+                        cell.dataset.previewShip = shipIndex;
+                        if (!isValid) {
+                            cell.classList.add('invalid');
+                        }
+                    }
+                }
+            });
+        }
+
+        function clearShipPreview() {
+            const grid = document.getElementById('mapBuilderGrid');
+            Array.from(grid.children).forEach(cell => {
+                cell.classList.remove('ship-preview', 'invalid');
+                delete cell.dataset.previewShip;
+            });
+        }
+
+        function placeShipOnGrid(shipIndex, startRow, startCol) {
+            const layout = SHIP_LAYOUTS[shipIndex];
+            const grid = document.getElementById('mapBuilderGrid');
+            
+            // If ship already placed, remove it first
+            if (mapBuilderState.placedShips.has(shipIndex)) {
+                clearShipFromGrid(shipIndex);
+            }
+            
+            // Check if placement is valid
+            const shipCells = layout.cells.map(([r, c]) => [startRow + r, startCol + c]);
+            for (const [r, c] of shipCells) {
+                if (r < 0 || r >= 12 || c < 0 || c >= 13) {
+                    return; // Out of bounds
+                }
+                
+                // Check for overlap with other ships
+                const cell = grid.children[r * 13 + c];
+                if (cell.classList.contains('ship-placed') && parseInt(cell.dataset.shipIndex) !== shipIndex) {
+                    return; // Overlapping with another ship
+                }
+            }
+            
+            // Clear preview
+            clearShipPreview();
+            
+            // Place ship
+            shipCells.forEach(([r, c]) => {
+                const cell = grid.children[r * 13 + c];
+                cell.classList.add('ship-placed');
+                cell.dataset.shipIndex = shipIndex;
+            });
+            
+            mapBuilderState.placedShips.set(shipIndex, { startRow, startCol, cells: shipCells });
+            
+            // Mark ship as placed in palette
+            const paletteShip = document.querySelector(`.palette-ship[data-ship-index="${shipIndex}"]`);
+            if (paletteShip) {
+                paletteShip.classList.add('placed');
+            }
+            
+            // Deselect ship after placing
+            mapBuilderState.selectedShip = null;
+            document.querySelectorAll('.palette-ship').forEach(ship => {
+                ship.classList.remove('selected');
+            });
+        }
+
+        function clearShipFromGrid(shipIndex) {
+            const grid = document.getElementById('mapBuilderGrid');
+            const shipData = mapBuilderState.placedShips.get(shipIndex);
+            
+            if (shipData) {
+                shipData.cells.forEach(([r, c]) => {
+                    const cell = grid.children[r * 13 + c];
+                    cell.classList.remove('ship-placed');
+                    delete cell.dataset.shipIndex;
+                });
+                
+                mapBuilderState.placedShips.delete(shipIndex);
+                
+                // Unmark ship in palette
+                const paletteShip = document.querySelector(`.palette-ship[data-ship-index="${shipIndex}"]`);
+                if (paletteShip) {
+                    paletteShip.classList.remove('placed');
+                }
+            }
+        }
+
+        function clearAllShips() {
+            const grid = document.getElementById('mapBuilderGrid');
+            Array.from(grid.children).forEach(cell => {
+                cell.classList.remove('ship-placed');
+                delete cell.dataset.shipIndex;
+            });
+            
+            mapBuilderState.placedShips.clear();
+            mapBuilderState.selectedShip = null;
+            
+            document.querySelectorAll('.palette-ship').forEach(ship => {
+                ship.classList.remove('placed', 'selected');
+            });
+        }
+
+        function resetMapBuilder() {
+            clearAllShips();
+        }
+
+        function updateMapBuilderTimestamp() {
+            const timestampEl = document.getElementById('mapBuilderTimestamp');
+            if (timestampEl) {
+                const now = new Date();
+                const formatted = now.toLocaleString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                });
+                timestampEl.textContent = formatted;
+            }
+        }
+
+        function scrollToMapBuilder() {
+            const section = document.getElementById('mapBuilderSection');
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
         initializeBoards();
         listenForHostMode();
+        initMapBuilder();
     </script>
 
 
