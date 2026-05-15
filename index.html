@@ -4011,6 +4011,10 @@ canvas {
         function showContextMenu(event, team, index) {
             console.log('showContextMenu called for', team, index);
             const menu = document.getElementById('markContextMenu');
+            
+            // First, ensure menu is hidden and reset
+            menu.classList.remove('active');
+            
             contextMenuTeam = team;
             contextMenuIndex = index;
             
@@ -4024,9 +4028,14 @@ canvas {
             const adjustedX = Math.min(x, window.innerWidth - menuWidth);
             const adjustedY = Math.min(y, window.innerHeight - menuHeight);
             
+            // Force reflow to ensure position is set before showing
             menu.style.left = adjustedX + 'px';
             menu.style.top = adjustedY + 'px';
-            menu.classList.add('active');
+            
+            // Small delay to ensure position is applied
+            requestAnimationFrame(() => {
+                menu.classList.add('active');
+            });
             
             console.log('Context menu shown at', adjustedX, adjustedY);
             
@@ -4034,13 +4043,29 @@ canvas {
             event.stopPropagation();
         }
         
+        function closeContextMenu() {
+            const menu = document.getElementById('markContextMenu');
+            if (menu) {
+                menu.classList.remove('active');
+                menu.style.left = '-9999px';
+                menu.style.top = '-9999px';
+            }
+            contextMenuTeam = null;
+            contextMenuIndex = null;
+        }
+        
         // Hide context menu when clicking outside
         document.addEventListener('click', (e) => {
             const menu = document.getElementById('markContextMenu');
             if (menu && !menu.contains(e.target)) {
-                menu.classList.remove('active');
+                closeContextMenu();
             }
         });
+        
+        // Hide context menu when scrolling
+        window.addEventListener('scroll', () => {
+            closeContextMenu();
+        }, true); // Use capture phase to catch all scroll events
         
         // Handle context menu selection
         document.querySelectorAll('.mark-option').forEach(option => {
@@ -4051,7 +4076,7 @@ canvas {
                 if (contextMenuTeam && contextMenuIndex !== null) {
                     applyMark(contextMenuTeam, contextMenuIndex, markType);
                 }
-                document.getElementById('markContextMenu').classList.remove('active');
+                closeContextMenu();
             });
         });
         
