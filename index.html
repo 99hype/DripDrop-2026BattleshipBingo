@@ -2103,11 +2103,119 @@ canvas {
 
 <style id="completed-tile-tooltip-patch">
     .cell-tooltip {
-        white-space: pre-line !important;
-        min-width: 300px !important;
-        max-width: 420px !important;
+        white-space: normal !important;
+        min-width: 330px !important;
+        max-width: 430px !important;
+        padding: 0 !important;
+        overflow: hidden !important;
         text-align: left !important;
         color: #ffffff !important;
+        background:
+            linear-gradient(180deg, rgba(20, 28, 42, 0.98), rgba(5, 8, 13, 0.98)) !important;
+        border: 3px solid #ffb000 !important;
+        border-radius: 10px !important;
+        box-shadow:
+            0 10px 26px rgba(0,0,0,0.65),
+            0 0 16px rgba(255,176,0,0.22) !important;
+    }
+
+    .tile-tooltip-card {
+        display: grid;
+        gap: 10px;
+        padding: 14px 16px 16px;
+    }
+
+    .tile-tooltip-header {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 8px 10px;
+        align-items: center;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255,216,74,0.22);
+    }
+
+    .tile-tooltip-coordinate {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 54px;
+        padding: 6px 8px;
+        border-radius: 8px;
+        background: rgba(255, 176, 0, 0.14);
+        border: 1px solid rgba(255, 216, 74, 0.42);
+        color: #ffd84a;
+        font-size: 1.22rem;
+        line-height: 1;
+        text-align: center;
+        text-shadow: 2px 2px 0 #000;
+    }
+
+    .tile-tooltip-task {
+        color: #fff1a8;
+        font-size: 1.08rem;
+        line-height: 1.15;
+        text-shadow: 2px 2px 0 #000;
+    }
+
+    .tile-tooltip-status {
+        grid-column: 1 / -1;
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.95rem;
+        line-height: 1;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        border: 1px solid rgba(255,255,255,0.18);
+        background: rgba(0,0,0,0.24);
+    }
+
+    .tile-tooltip-status.hit {
+        color: #ffdede;
+        background: rgba(150, 28, 28, 0.48);
+        border-color: rgba(255,120,120,0.55);
+    }
+
+    .tile-tooltip-status.miss {
+        color: #d8e5ff;
+        background: rgba(38, 60, 90, 0.52);
+        border-color: rgba(120,190,255,0.45);
+    }
+
+    .tile-tooltip-details {
+        display: grid;
+        gap: 8px;
+    }
+
+    .tile-tooltip-row {
+        display: grid;
+        grid-template-columns: 116px 1fr;
+        gap: 10px;
+        align-items: baseline;
+    }
+
+    .tile-tooltip-label {
+        color: #bfa169;
+        font-size: 0.82rem;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+    }
+
+    .tile-tooltip-value {
+        color: #ffffff;
+        font-size: 1.04rem;
+        line-height: 1.18;
+        text-shadow: 2px 2px 0 #000;
+    }
+
+    .tile-tooltip-empty {
+        padding: 12px 14px;
+        color: #fff1a8;
+        font-size: 1rem;
+        line-height: 1.2;
     }
 </style>
 
@@ -3059,6 +3167,15 @@ canvas {
             });
         }
 
+        function escapeTooltipHtml(value) {
+            return String(value == null ? '' : value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         function updateCellTooltip(cell, team, index, state) {
             if (!cell) return;
             const coordinate = getCoordinate(index);
@@ -3075,16 +3192,38 @@ canvas {
                 cell.appendChild(tooltip);
             }
 
-            const taskLine = `${coordinate}: ${cellTasks[coordinate]}`;
+            const task = cellTasks[coordinate];
             const details = tileDetails && tileDetails[team] ? tileDetails[team][coordinate] : null;
 
             if ((state === 'hit' || state === 'miss') && details) {
                 const completedBy = details.completedBy && details.completedBy.trim() ? details.completedBy.trim() : 'Unknown';
                 const completedWhen = formatTileTooltipTimestamp(details.timestamp);
-                const shootingTeam = details.shootingTeam ? getTeamDisplayName(details.shootingTeam) : getTeamDisplayName(getShootingTeam(team));
-                tooltip.textContent = `${taskLine}\nStatus: ${String(state).toUpperCase()}\nCompleted by: ${completedBy}\nCompleted when: ${completedWhen}\nShot by: ${shootingTeam}`;
+                const statusText = String(state).toUpperCase();
+                tooltip.innerHTML = `
+                    <div class="tile-tooltip-card">
+                        <div class="tile-tooltip-header">
+                            <div class="tile-tooltip-coordinate">${escapeTooltipHtml(coordinate)}</div>
+                            <div class="tile-tooltip-task">${escapeTooltipHtml(task)}</div>
+                            <div class="tile-tooltip-status ${escapeTooltipHtml(state)}">${escapeTooltipHtml(statusText)}</div>
+                        </div>
+                        <div class="tile-tooltip-details">
+                            <div class="tile-tooltip-row">
+                                <div class="tile-tooltip-label">Completed by</div>
+                                <div class="tile-tooltip-value">${escapeTooltipHtml(completedBy)}</div>
+                            </div>
+                            <div class="tile-tooltip-row">
+                                <div class="tile-tooltip-label">Completed when</div>
+                                <div class="tile-tooltip-value">${escapeTooltipHtml(completedWhen)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             } else {
-                tooltip.textContent = taskLine;
+                tooltip.innerHTML = `
+                    <div class="tile-tooltip-empty">
+                        <strong>${escapeTooltipHtml(coordinate)}</strong>: ${escapeTooltipHtml(task)}
+                    </div>
+                `;
             }
         }
 
