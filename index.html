@@ -2100,6 +2100,17 @@ canvas {
     }
 </style>
 
+
+<style id="completed-tile-tooltip-patch">
+    .cell-tooltip {
+        white-space: pre-line !important;
+        min-width: 300px !important;
+        max-width: 420px !important;
+        text-align: left !important;
+        color: #ffffff !important;
+    }
+</style>
+
 </head>
 <body>
     <div class="container">
@@ -3033,6 +3044,50 @@ canvas {
             return team === 'team1' ? 'Red Team' : 'Blue Team';
         }
 
+        function formatTileTooltipTimestamp(timestamp) {
+            if (!timestamp) return 'Unknown time';
+            const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+            if (Number.isNaN(date.getTime())) return 'Unknown time';
+            return date.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+        }
+
+        function updateCellTooltip(cell, team, index, state) {
+            if (!cell) return;
+            const coordinate = getCoordinate(index);
+            let tooltip = cell.querySelector('.cell-tooltip');
+
+            if (!cellTasks[coordinate]) {
+                if (tooltip) tooltip.remove();
+                return;
+            }
+
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.className = 'cell-tooltip';
+                cell.appendChild(tooltip);
+            }
+
+            const taskLine = `${coordinate}: ${cellTasks[coordinate]}`;
+            const details = tileDetails && tileDetails[team] ? tileDetails[team][coordinate] : null;
+
+            if ((state === 'hit' || state === 'miss') && details) {
+                const completedBy = details.completedBy && details.completedBy.trim() ? details.completedBy.trim() : 'Unknown';
+                const completedWhen = formatTileTooltipTimestamp(details.timestamp);
+                const shootingTeam = details.shootingTeam ? getTeamDisplayName(details.shootingTeam) : getTeamDisplayName(getShootingTeam(team));
+                tooltip.textContent = `${taskLine}\nStatus: ${String(state).toUpperCase()}\nCompleted by: ${completedBy}\nCompleted when: ${completedWhen}\nShot by: ${shootingTeam}`;
+            } else {
+                tooltip.textContent = taskLine;
+            }
+        }
+
         function getDiscordTimestamp(date) {
             const unixSeconds = Math.floor(date.getTime() / 1000);
             return `<t:${unixSeconds}:F>`;
@@ -3341,13 +3396,7 @@ canvas {
                 });
                 
                 // Add tooltip if task exists for this cell
-                const coordinate = getCoordinate(i);
-                if (cellTasks[coordinate]) {
-                    const tooltip = document.createElement('div');
-                    tooltip.className = 'cell-tooltip';
-                    tooltip.textContent = `${coordinate}: ${cellTasks[coordinate]}`;
-                    cell.appendChild(tooltip);
-                }
+                updateCellTooltip(cell, team, i, null);
                 
                 grid.appendChild(cell);
             }
@@ -3617,10 +3666,11 @@ canvas {
                 cell.innerHTML = '';
             }
             
-            // Re-add the tooltip if it existed
+            // Re-add and refresh the tooltip with completed-by details when the tile is marked.
             if (tooltip) {
                 cell.appendChild(tooltip);
             }
+            updateCellTooltip(cell, team, index, state);
         }
         
         function updateAllCells() {
@@ -4279,19 +4329,6 @@ canvas {
         listenForHostMode();
     </script>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.cell-tooltip').forEach(tip => {
-        const txt = tip.textContent;
-        const split = txt.split(': ');
-        if (split.length >= 2) {
-            const tile = split.shift();
-            const task = split.join(': ');
-            tip.innerHTML = '<span style="color:#ffcc33;">' + tile + ':</span> <span style="color:#ffffff;">' + task + '</span>';
-        }
-    });
-});
-</script>
 
 </body>
 </html>
