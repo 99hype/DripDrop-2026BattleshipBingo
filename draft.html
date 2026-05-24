@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iron Drip/Drop Bingo Drafting</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'RuneScape UF', 'RS-Font', 'Courier New', Courier, monospace;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #00d9ff;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.8em;
+            text-shadow: 
+                0 0 20px rgba(0, 217, 255, 0.5),
+                0 0 40px rgba(0, 217, 255, 0.3);
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #00d9ff;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.3);
+            color: #ffffff;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Inter', 'RuneScape UF', 'RS-Font', 'Courier New', Courier, monospace;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #00d9ff;
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 2px rgba(0, 217, 255, 0.2);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        textarea::placeholder,
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Inter', 'RuneScape UF', 'RS-Font', 'Courier New', Courier, monospace;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0px);
+        }
+
+        .player-pool {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .player-pool h2 {
+            margin-bottom: 15px;
+            color: #00d9ff;
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+
+        .players-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            min-height: 60px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .player {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+            padding: 10px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: grab;
+            user-select: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            font-weight: 600;
+            transition: all 0.2s;
+            color: #ffffff;
+            backdrop-filter: blur(5px);
+        }
+
+        .player:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.5) 0%, rgba(118, 75, 162, 0.5) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .player.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .teams-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .team {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .team:hover {
+            transform: translateY(-4px);
+        }
+
+        .team-header {
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .team-name {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 5px;
+            outline: none;
+        }
+
+        .team-name:focus {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+
+        .captain-section {
+            margin-bottom: 15px;
+        }
+
+        .captain-label {
+            font-size: 12px;
+            color: #00d9ff;
+            margin-bottom: 5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .captain-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.3);
+            color: #ffffff;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Inter', 'RuneScape UF', 'RS-Font', 'Courier New', Courier, monospace;
+            transition: all 0.3s;
+        }
+
+        .captain-input:focus {
+            outline: none;
+            border-color: #00d9ff;
+            background: rgba(0, 0, 0, 0.4);
+            box-shadow: 0 0 0 2px rgba(0, 217, 255, 0.2);
+        }
+
+        .captain-input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .team-players {
+            min-height: 100px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .team-players.drag-over {
+            background: rgba(0, 217, 255, 0.1);
+            border-color: #00d9ff;
+            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+        }
+
+        .team-player {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: grab;
+            user-select: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            color: #ffffff;
+            transition: all 0.2s;
+            font-weight: 600;
+            backdrop-filter: blur(5px);
+        }
+
+        .team-player:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .team-player:last-child {
+            margin-bottom: 0;
+        }
+
+        .team-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            align-items: center;
+        }
+
+        .team-controls input[type="color"] {
+            width: 50px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px;
+        }
+
+        .remove-team {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            padding: 8px 12px;
+            font-size: 12px;
+            flex: 1;
+            box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);
+        }
+
+        .remove-team:hover {
+            box-shadow: 0 6px 20px rgba(255, 65, 108, 0.4);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.4);
+            font-style: italic;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .teams-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚔️ Iron Drip/Drop Bingo Drafting ⚔️</h1>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="playerList">Import Players (one per line):</label>
+                <textarea id="playerList" placeholder="Player1&#10;Player2&#10;Player3&#10;Player4"></textarea>
+                <button onclick="importPlayers()" style="margin-top: 10px;">Import Players</button>
+            </div>
+
+            <div class="control-group">
+                <label>Team Management:</label>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="addTeam()" style="flex: 1;">Add New Team</button>
+                    <button onclick="clearDraft()" style="flex: 1; background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); box-shadow: 0 4px 15px rgba(255, 65, 108, 0.3);">Clear Draft</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="player-pool">
+            <h2>Available Players</h2>
+            <div class="players-container" id="playerPool"></div>
+        </div>
+
+        <div class="teams-grid" id="teamsContainer"></div>
+    </div>
+
+    <script>
+        let draggedElement = null;
+        let teamCount = 0;
+
+        // Save state to localStorage
+        function saveState() {
+            const state = {
+                teamCount: teamCount,
+                playerPool: [],
+                teams: []
+            };
+
+            // Save player pool
+            const poolPlayers = document.querySelectorAll('#playerPool .player');
+            poolPlayers.forEach(player => {
+                state.playerPool.push(player.textContent);
+            });
+
+            // Save teams
+            const teams = document.querySelectorAll('.team');
+            teams.forEach(team => {
+                const teamData = {
+                    name: team.querySelector('.team-name').textContent,
+                    captain: team.querySelector('.captain-input').value,
+                    color: team.querySelector('.team-header').style.background,
+                    players: []
+                };
+
+                const teamPlayers = team.querySelectorAll('.team-player');
+                teamPlayers.forEach(player => {
+                    teamData.players.push(player.textContent);
+                });
+
+                state.teams.push(teamData);
+            });
+
+            localStorage.setItem('bingoDraft', JSON.stringify(state));
+        }
+
+        // Load state from localStorage
+        function loadState() {
+            const saved = localStorage.getItem('bingoDraft');
+            if (!saved) return;
+
+            const state = JSON.parse(saved);
+            teamCount = state.teamCount;
+
+            // Load player pool
+            const playerPool = document.getElementById('playerPool');
+            playerPool.innerHTML = '';
+            state.playerPool.forEach(name => {
+                const playerDiv = createPlayerElement(name);
+                playerPool.appendChild(playerDiv);
+            });
+
+            if (state.playerPool.length === 0) {
+                playerPool.innerHTML = '<div class="empty-state">Import players to get started</div>';
+            }
+
+            // Load teams
+            const teamsContainer = document.getElementById('teamsContainer');
+            teamsContainer.innerHTML = '';
+            state.teams.forEach(teamData => {
+                const teamDiv = document.createElement('div');
+                teamDiv.className = 'team';
+                teamDiv.innerHTML = `
+                    <div class="team-header" style="background: ${teamData.color};">
+                        <div class="team-name" contenteditable="true">${teamData.name}</div>
+                    </div>
+                    <div class="captain-section">
+                        <div class="captain-label">Captain</div>
+                        <input type="text" class="captain-input" placeholder="Enter captain name" value="${teamData.captain}">
+                    </div>
+                    <div class="team-players"></div>
+                    <div class="team-controls">
+                        <input type="color" value="${teamData.color}" onchange="updateTeamColor(this)">
+                        <button class="remove-team" onclick="removeTeam(this)">Remove Team</button>
+                    </div>
+                `;
+                teamsContainer.appendChild(teamDiv);
+
+                const teamPlayers = teamDiv.querySelector('.team-players');
+                setupDropZone(teamPlayers);
+
+                // Add players to team
+                teamData.players.forEach(name => {
+                    const playerDiv = createPlayerElement(name);
+                    playerDiv.className = 'team-player';
+                    teamPlayers.appendChild(playerDiv);
+                });
+
+                // Add event listeners for captain input and team name
+                const captainInput = teamDiv.querySelector('.captain-input');
+                captainInput.addEventListener('input', saveState);
+
+                const teamName = teamDiv.querySelector('.team-name');
+                teamName.addEventListener('input', saveState);
+            });
+        }
+
+        function importPlayers() {
+            const textarea = document.getElementById('playerList');
+            const names = textarea.value
+                .split('\n')
+                .map(name => name.trim())
+                .filter(name => name.length > 0);
+
+            const playerPool = document.getElementById('playerPool');
+            playerPool.innerHTML = '';
+
+            names.forEach(name => {
+                const playerDiv = createPlayerElement(name);
+                playerPool.appendChild(playerDiv);
+            });
+
+            if (names.length === 0) {
+                playerPool.innerHTML = '<div class="empty-state">No players imported yet</div>';
+            }
+
+            saveState();
+        }
+
+        function createPlayerElement(name) {
+            const div = document.createElement('div');
+            div.className = 'player';
+            div.draggable = true;
+            div.textContent = name;
+
+            div.addEventListener('dragstart', (e) => {
+                draggedElement = div;
+                div.classList.add('dragging');
+            });
+
+            div.addEventListener('dragend', (e) => {
+                div.classList.remove('dragging');
+            });
+
+            return div;
+        }
+
+        function addTeam() {
+            const teamsContainer = document.getElementById('teamsContainer');
+            teamCount++;
+
+            const colors = [
+                '#667eea', '#f093fb', '#4facfe', '#fa709a', 
+                '#feca57', '#48dbfb', '#ff6348', '#1dd1a1',
+                '#ee5a6f', '#c44569'
+            ];
+
+            const color = colors[(teamCount - 1) % colors.length];
+
+            const teamDiv = document.createElement('div');
+            teamDiv.className = 'team';
+            teamDiv.innerHTML = `
+                <div class="team-header" style="background: ${color};">
+                    <div class="team-name" contenteditable="true">Team ${teamCount}</div>
+                </div>
+                <div class="captain-section">
+                    <div class="captain-label">Captain</div>
+                    <input type="text" class="captain-input" placeholder="Enter captain name">
+                </div>
+                <div class="team-players"></div>
+                <div class="team-controls">
+                    <input type="color" value="${color}" onchange="updateTeamColor(this)">
+                    <button class="remove-team" onclick="removeTeam(this)">Remove Team</button>
+                </div>
+            `;
+            teamsContainer.appendChild(teamDiv);
+
+            const teamPlayers = teamDiv.querySelector('.team-players');
+            setupDropZone(teamPlayers);
+
+            // Add event listeners for saving
+            const captainInput = teamDiv.querySelector('.captain-input');
+            captainInput.addEventListener('input', saveState);
+
+            const teamName = teamDiv.querySelector('.team-name');
+            teamName.addEventListener('input', saveState);
+
+            saveState();
+        }
+
+        function setupDropZone(element) {
+            element.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                element.classList.add('drag-over');
+            });
+
+            element.addEventListener('dragleave', (e) => {
+                element.classList.remove('drag-over');
+            });
+
+            element.addEventListener('drop', (e) => {
+                e.preventDefault();
+                element.classList.remove('drag-over');
+
+                if (draggedElement) {
+                    const newPlayer = createPlayerElement(draggedElement.textContent);
+                    newPlayer.className = 'team-player';
+                    element.appendChild(newPlayer);
+                    draggedElement.remove();
+                    saveState();
+                }
+            });
+        }
+
+        function updateTeamColor(input) {
+            const team = input.closest('.team');
+            const header = team.querySelector('.team-header');
+            header.style.background = input.value;
+            saveState();
+        }
+
+        function removeTeam(button) {
+            const team = button.closest('.team');
+            const players = team.querySelectorAll('.team-player');
+            const playerPool = document.getElementById('playerPool');
+
+            players.forEach(player => {
+                const newPlayer = createPlayerElement(player.textContent);
+                playerPool.appendChild(newPlayer);
+            });
+
+            team.remove();
+            saveState();
+        }
+
+        function clearDraft() {
+            if (confirm('Are you sure you want to clear the entire draft? This will remove all teams and players.')) {
+                localStorage.removeItem('bingoDraft');
+                document.getElementById('teamsContainer').innerHTML = '';
+                document.getElementById('playerPool').innerHTML = '<div class="empty-state">Import players to get started</div>';
+                document.getElementById('playerList').value = '';
+                teamCount = 0;
+            }
+        }
+
+        // Setup player pool as drop zone
+        const playerPool = document.getElementById('playerPool');
+        setupDropZone(playerPool);
+
+        // Load saved state on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            if (document.querySelectorAll('#playerPool .player').length === 0) {
+                playerPool.innerHTML = '<div class="empty-state">Import players to get started</div>';
+            }
+        });
+    </script>
+</body>
+</html>
