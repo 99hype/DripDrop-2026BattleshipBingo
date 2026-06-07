@@ -2781,7 +2781,7 @@ canvas {
     }
 
     .palette-ship[data-ship-index="2"] .palette-ship-cell {
-        background: #4CAF50; /* Green - Dual Striker */
+        background: #4CAF50; /* Green - Twin Towers */
     }
 
     .palette-ship[data-ship-index="3"] .palette-ship-cell {
@@ -3440,7 +3440,7 @@ canvas {
         const COLS = 13;
         
         // Event host authentication token
-        const AUTH_TOKEN = '8ea19e6b4a08b0f15e19fd84a93d4e1781e5a393b25ed444c0cd495e07b58118';
+        const AUTH_TOKEN = '242e9499fae5ae83e72d54decb52d97c833e055ce9becb9f83bf410e8113d648';
 
         // Host password lockout settings
         const MAX_PASSWORD_ATTEMPTS = 4;
@@ -3475,7 +3475,7 @@ canvas {
         const SHIP_LAYOUTS = [
             { name: 'Crosshair', cells: [[0,1],[1,0],[1,1],[1,2],[2,1]] },
             { name: 'Hammerhead', cells: [[0,0],[0,1],[0,2],[1,1],[2,1],[3,0],[3,1],[3,2]] },
-            { name: 'Dual Striker', cells: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2],[3,0],[3,2],[4,0],[4,1],[4,2]] },
+            { name: 'Twin Towers', cells: [[0,0],[0,2],[1,0],[1,2],[2,0],[2,2],[3,0],[3,2],[4,0],[4,1],[4,2]] },
             { name: 'The L', cells: [[0,0],[1,0],[2,0],[3,0],[4,0],[5,0],[5,1]] },
             { name: 'The Line', cells: [[0,0],[1,0],[2,0],[3,0],[4,0]] },
             { name: 'The Big O', cells: [[0,0],[0,1],[0,2],[1,0],[1,2],[2,0],[2,2],[3,0],[3,2],[4,0],[4,1],[4,2]] }
@@ -5162,25 +5162,18 @@ canvas {
                 return;
             }
 
-            console.log('checkPassword called');
             const password = document.getElementById('passwordInput').value;
-            console.log('Password entered:', password ? 'YES' : 'NO');
 
             const hashedInput = await verifyCredentials(password);
-            console.log('Hash computed:', hashedInput);
-            console.log('Expected hash:', AUTH_TOKEN);
-            console.log('Match:', hashedInput === AUTH_TOKEN);
 
             if (hashedInput === AUTH_TOKEN) {
                 failedPasswordAttempts = 0;
                 lockoutUntil = 0;
                 updateLockoutMessage();
-                console.log('Password correct! Entering edit mode...');
                 enterEditMode();
                 closeModal();
             } else {
                 failedPasswordAttempts += 1;
-                console.log('Password incorrect. Failed attempts:', failedPasswordAttempts);
 
                 const attemptsLeft = Math.max(0, MAX_PASSWORD_ATTEMPTS - failedPasswordAttempts);
                 const errorMessage = document.getElementById('errorMessage');
