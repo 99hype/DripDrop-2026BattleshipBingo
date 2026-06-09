@@ -4345,6 +4345,28 @@ canvas {
             return `${rowLetter}${colNumber}`;
         }
 
+        function getTaskIconUrl(coordinate) {
+            const icon = TASK_ICONS_BY_COORDINATE[coordinate];
+            return typeof icon === 'string' ? icon : icon && icon.src ? icon.src : '';
+        }
+
+        function getDiscordTaskIconUrl(coordinate) {
+            const iconUrl = getTaskIconUrl(coordinate);
+            if (!iconUrl) return '';
+
+            try {
+                const url = new URL(iconUrl);
+                if (url.hostname === 'oldschool.runescape.wiki') {
+                    const sourcePath = `${url.hostname}${url.pathname}`;
+                    return `https://images.weserv.nl/?url=${encodeURIComponent(sourcePath)}&w=160&h=160&fit=contain&output=png`;
+                }
+            } catch (err) {
+                console.warn('Could not build resized Discord icon URL:', err);
+            }
+
+            return iconUrl;
+        }
+
         function renderCellContent(cell, index, state) {
             const coordinate = getCoordinate(index);
             const icon = TASK_ICONS_BY_COORDINATE[coordinate];
@@ -4686,6 +4708,7 @@ canvas {
                 second: '2-digit',
                 hour12: true
             });
+            const taskIconUrl = getDiscordTaskIconUrl(coordinate);
 
             const message = `${shooterName} Shoots Tile ${coordinate} - ${cleanStatus} - Task "${taskName}" - Completed by "${cleanName}" - ${discordTimestamp} (${plainTimestamp})`;
 
@@ -4704,6 +4727,10 @@ canvas {
                             shootingTeam === 'team1'
                                 ? 0xff4444
                                 : 0x3b82f6,
+
+                        thumbnail: taskIconUrl ? {
+                            url: taskIconUrl
+                        } : undefined,
 
                         fields: [
                             {
