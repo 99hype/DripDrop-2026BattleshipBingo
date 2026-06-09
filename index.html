@@ -846,7 +846,7 @@
             border-radius: 4px;
         }
         .cell {
-            will-change: background-color;
+            will-change: auto;
             background: #2b2b2b;
             width: 40px;
             height: 40px;
@@ -854,7 +854,7 @@
             align-items: center;
             justify-content: center;
             cursor: default;
-            transition: background 0.05s linear;
+            transition: none;
             position: relative;
             border-radius: 2px;
             border: 1px solid rgba(0,0,0,0.35);
@@ -927,6 +927,34 @@
             width: 28px;
             height: 28px;
             pointer-events: none;
+        }
+
+        .cell-task-icon {
+            width: 78%;
+            height: 78%;
+            object-fit: contain;
+            image-rendering: pixelated;
+            pointer-events: none;
+            position: relative;
+            z-index: 1;
+            filter: none;
+        }
+
+        .cell-mark {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 2;
+            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.85));
+        }
+
+        .cell.has-task-icon.hit .cell-task-icon,
+        .cell.has-task-icon.miss .cell-task-icon {
+            opacity: 0.28;
+            filter: grayscale(1) saturate(0.05) brightness(0.65);
         }
         
         .hit svg circle {
@@ -3027,6 +3055,34 @@ canvas {
     }
 </style>
 
+<style id="tile-icon-performance-patch">
+    .boards-container .cell {
+        transition: none !important;
+        will-change: auto !important;
+    }
+
+    .boards-container .cell:hover,
+    .boards-container .cell.edit-mode:hover {
+        box-shadow: none !important;
+        outline: 2px solid var(--osrs-yellow) !important;
+    }
+
+    .boards-container .cell-task-icon {
+        filter: none !important;
+    }
+
+    .boards-container .cell.has-task-icon.hit .cell-task-icon,
+    .boards-container .cell.has-task-icon.miss .cell-task-icon {
+        opacity: 0.28 !important;
+        filter: grayscale(1) saturate(0.05) brightness(0.65) !important;
+    }
+
+    .boards-container .cell-tooltip {
+        transition: none !important;
+        will-change: auto !important;
+    }
+</style>
+
 </head>
 <body>
     <div class="container">
@@ -3599,7 +3655,7 @@ canvas {
             "5x Venator Shard",
             "Obsidian Armor Piece (must be drop)",
             "Wilderness Weapon (non-dupe)",
-            "Abyssal Lantern",
+            "Abyssal Lantern - Must include Before Photo of Points @ 0. Cannot be purchased must be a drop.",
             "Bottled Storm",
             "1 Awakened Boss KC",
             "Arcane Prayer Scroll",
@@ -3705,6 +3761,165 @@ canvas {
                 return [coordinate, task];
             })
         );
+
+        const TASK_ICONS_BY_COORDINATE = {
+            "A1": "https://oldschool.runescape.wiki/images/Masori_mask.png?44891",
+            "A2": "https://oldschool.runescape.wiki/images/Zamorak_hilt.png?37c64",
+            "A3": "https://oldschool.runescape.wiki/images/Soulflame_horn.png?773dd",
+            "A4": "https://oldschool.runescape.wiki/images/Hydra%27s_claw.png?7331d",
+            "A5": "https://oldschool.runescape.wiki/images/Ancestral_hat.png?ec289",
+            "A6": "https://oldschool.runescape.wiki/images/Primordial_crystal.png?219da",
+            "A7": "https://oldschool.runescape.wiki/images/Inquisitor%27s_great_helm.png?e75c0",
+            "A8": "https://oldschool.runescape.wiki/images/Pristine_spider_silk.png?11d7c",
+            "A9": "https://oldschool.runescape.wiki/images/Oathplate_helm.png?e3d92",
+            "A10": "https://oldschool.runescape.wiki/images/Sarachnis_cudgel.png?c4e91",
+            "A11": "https://oldschool.runescape.wiki/images/Scurrius%27_spine.png?a2a6a",
+            "A12": "https://oldschool.runescape.wiki/images/Occult_necklace.png?7df05",
+            "A13": "https://oldschool.runescape.wiki/images/Burning_claws.png?8d51d",
+            "B1": "https://oldschool.runescape.wiki/images/Crystal_tool_seed.png?3bcd5",
+            "B2": "https://oldschool.runescape.wiki/images/Salvor%27s_paint.png?afec5",
+            "B3": "https://oldschool.runescape.wiki/images/Dark_acorn.png?85335",
+            "B4": "https://oldschool.runescape.wiki/images/Osmumten%27s_fang.png?8bfab",
+            "B5": "https://oldschool.runescape.wiki/images/Elidinis%27_ward.png?a2353",
+            "B6": "https://oldschool.runescape.wiki/images/Enhanced_crystal_weapon_seed.png?b8cf0",
+            "B7": "https://oldschool.runescape.wiki/images/Infernal_cape.png?80b36",
+            "B8": "https://oldschool.runescape.wiki/images/Magic_fang.png?ed6d0",
+            "B9": "https://oldschool.runescape.wiki/images/Tome_of_water.png?04f28",
+            "B10": "https://oldschool.runescape.wiki/images/Abyssal_bludgeon.png?b10f5",
+            "B11": "https://oldschool.runescape.wiki/images/Twinflame_staff.png?12e98",
+            "B12": "https://oldschool.runescape.wiki/images/Bracelet_of_ethereum.png?05d25",
+            "B13": "https://oldschool.runescape.wiki/images/Dragon_warhammer.png?73103",
+            "C1": "https://oldschool.runescape.wiki/images/Tackle_box.png?fa231",
+            "C2": "https://oldschool.runescape.wiki/images/Crystal_armour_seed.png?ec18f",
+            "C3": "https://oldschool.runescape.wiki/images/Bandos_boots.png?f928c",
+            "C4": "https://oldschool.runescape.wiki/images/Serpentine_helm.png?c82f9",
+            "C5": "https://oldschool.runescape.wiki/images/Dexterous_prayer_scroll.png?6b57c",
+            "C6": "https://oldschool.runescape.wiki/images/Harmonised_orb.png?bfea5",
+            "C7": "https://oldschool.runescape.wiki/images/Tanzanite_fang.png?57bdc",
+            "C8": "https://oldschool.runescape.wiki/images/Hill_giant_club.png?923a0",
+            "C9": "https://oldschool.runescape.wiki/images/Soulreaper_axe.png?3f17a",
+            "C10": "https://oldschool.runescape.wiki/images/Tome_of_earth.png?942fb",
+            "C11": "https://oldschool.runescape.wiki/images/Fish_barrel.png?006fa",
+            "C12": "https://oldschool.runescape.wiki/images/Armadyl_chainskirt.png?e56f0",
+            "C13": "https://oldschool.runescape.wiki/images/Dragon_harpoon.png?cc5f3",
+            "D1": "https://oldschool.runescape.wiki/images/Araxyte_fang.png?b5a13",
+            "D2": "https://oldschool.runescape.wiki/images/Sanguine_dust.png?7313d",
+            "D3": "https://oldschool.runescape.wiki/images/Oathplate_helm.png?e3d92",
+            "D4": "https://oldschool.runescape.wiki/images/Black_tourmaline_core.png?5e74f",
+            "D5": "https://oldschool.runescape.wiki/images/Ghrazi_rapier.png?d2266",
+            "D6": "https://oldschool.runescape.wiki/images/Zenyte_shard.png?8abb8",
+            "D7": "https://oldschool.runescape.wiki/images/Uncut_onyx.png?ad4b1",
+            "D8": "https://oldschool.runescape.wiki/images/Crystal_armour_seed.png?ec18f",
+            "D9": "https://oldschool.runescape.wiki/images/Sulphur_blades.png?16fac",
+            "D10": "https://oldschool.runescape.wiki/images/Noxious_pommel.png?8bfab",
+            "D11": "https://oldschool.runescape.wiki/images/Kraken_tentacle.png?af6ab",
+            "D12": "https://oldschool.runescape.wiki/images/Twinflame_staff.png?12e98",
+            "D13": "https://oldschool.runescape.wiki/images/Bottomless_compost_bucket.png?3fbd5",
+            "E1": "https://oldschool.runescape.wiki/images/Torva_full_helm.png?96920",
+            "E2": "https://oldschool.runescape.wiki/images/Seers_ring.png?4b960",
+            "E3": "https://oldschool.runescape.wiki/images/Enhanced_crystal_weapon_seed.png?b8cf0",
+            "E4": "https://oldschool.runescape.wiki/images/Voidwaker_gem.png?dd2ac",
+            "E5": "https://oldschool.runescape.wiki/images/Inquisitor%27s_great_helm.png?e75c0",
+            "E6": "https://oldschool.runescape.wiki/images/Avernic_defender.png?e4676",
+            "E7": "https://oldschool.runescape.wiki/images/Venator_bow.png?6600c",
+            "E8": "https://oldschool.runescape.wiki/images/Obsidian_helmet.png?e6c2a",
+            "E9": "https://oldschool.runescape.wiki/images/Bracelet_of_ethereum.png?05d25",
+            "E10": "https://oldschool.runescape.wiki/images/Abyssal_lantern.png?5b006",
+            "E11": "https://oldschool.runescape.wiki/images/Bottled_storm.png?afec5",
+            "E12": "https://oldschool.runescape.wiki/images/Awakener%27s_orb.png?99060",
+            "E13": "https://oldschool.runescape.wiki/images/Arcane_prayer_scroll.png?1f712",
+            "F1": "https://oldschool.runescape.wiki/images/Elder_maul.png?0a875",
+            "F2": "https://oldschool.runescape.wiki/images/Smoke_battlestaff.png?52875",
+            "F3": "https://oldschool.runescape.wiki/images/Lightbearer.png?6da96",
+            "F4": "https://oldschool.runescape.wiki/images/Nihil_horn.png?f4677",
+            "F5": "https://oldschool.runescape.wiki/images/Vorkath%27s_head.png?b7686",
+            "F6": "https://oldschool.runescape.wiki/images/Dom.png?aa496",
+            "F7": "https://oldschool.runescape.wiki/images/Big_shark.png?356fd",
+            "F8": "https://oldschool.runescape.wiki/images/Zamorakian_spear.png?420f4",
+            "F9": "https://oldschool.runescape.wiki/images/Bandos_hilt.png?f928c",
+            "F10": "https://oldschool.runescape.wiki/images/Dom.png?aa496",
+            "F11": "https://oldschool.runescape.wiki/images/Masori_mask.png?44891",
+            "F12": "https://oldschool.runescape.wiki/images/Basilisk_jaw.png?3be33",
+            "F13": "https://oldschool.runescape.wiki/images/Justiciar_faceguard.png?fb842",
+            "G1": "https://oldschool.runescape.wiki/images/Eclipse_atlatl.png?77621",
+            "G2": "https://oldschool.runescape.wiki/images/Horn_of_plenty.png?1510e",
+            "G3": "https://oldschool.runescape.wiki/images/Fire_cape.png?5abba",
+            "G4": "https://oldschool.runescape.wiki/images/Torag%27s_helm.png?c9227",
+            "G5": "https://oldschool.runescape.wiki/images/Armadyl_helmet.png?e56f0",
+            "G6": "https://oldschool.runescape.wiki/images/Avernic_defender.png?e4676",
+            "G7": "https://oldschool.runescape.wiki/images/Zenyte_shard.png?8abb8",
+            "G8": "https://oldschool.runescape.wiki/images/Zenyte_shard.png?8abb8",
+            "G9": "https://oldschool.runescape.wiki/images/Steel_ring.png?c52f7",
+            "G10": "https://oldschool.runescape.wiki/images/Tome_of_fire.png?c9227",
+            "G11": "https://oldschool.runescape.wiki/images/Abyssal_green_dye.png?a31d4",
+            "G12": "https://oldschool.runescape.wiki/images/Dragon_hunter_wand.png?77ca0",
+            "G13": "https://oldschool.runescape.wiki/images/Noxious_blade.png?8bfab",
+            "H1": "https://oldschool.runescape.wiki/images/Voidwaker_hilt.png?dd2ac",
+            "H2": "https://oldschool.runescape.wiki/images/Armadyl_crossbow.png?c60fb",
+            "H3": "https://oldschool.runescape.wiki/images/Bracelet_of_ethereum.png?05d25",
+            "H4": "https://oldschool.runescape.wiki/images/Spirit_shield.png?e8969",
+            "H5": "https://oldschool.runescape.wiki/images/Abyssal_bludgeon.png?b10f5",
+            "H6": "https://oldschool.runescape.wiki/images/Tormented_synapse.png?4d370",
+            "H7": "https://oldschool.runescape.wiki/images/Sanguinesti_staff.png?dcaa9",
+            "H8": "https://oldschool.runescape.wiki/images/Sunfire_fanatic_helm.png?16f54",
+            "H9": "https://oldschool.runescape.wiki/images/Malediction_ward.png?ed6d0",
+            "H10": "https://oldschool.runescape.wiki/images/Draconic_visage.png?cb9aa",
+            "H11": "https://oldschool.runescape.wiki/images/Dragon_pickaxe.png?c85b3",
+            "H12": "https://oldschool.runescape.wiki/images/Heavy_ballista.png?bfea5",
+            "H13": "https://oldschool.runescape.wiki/images/Arcane_prayer_scroll.png?1f712",
+            "I1": "https://oldschool.runescape.wiki/images/Dragon_hunter_crossbow.png?cc5f3",
+            "I2": "https://oldschool.runescape.wiki/images/Dragon_full_helm.png?cc5f3",
+            "I3": "https://oldschool.runescape.wiki/images/Voidwaker_blade.png?26d89",
+            "I4": "https://oldschool.runescape.wiki/images/Jar_of_chemicals.png?d94ce",
+            "I5": "https://oldschool.runescape.wiki/images/Mud_battlestaff.png?7027d",
+            "I6": "https://oldschool.runescape.wiki/images/Elysian_sigil.png?1bc1e",
+            "I7": "https://oldschool.runescape.wiki/images/Zenyte_shard.png?8abb8",
+            "I8": "https://oldschool.runescape.wiki/images/Odium_ward.png?b959a",
+            "I9": "https://oldschool.runescape.wiki/images/Blood_shard.png?3d4c6",
+            "I10": "https://oldschool.runescape.wiki/images/Berserker_ring.png?3be33",
+            "I11": "https://oldschool.runescape.wiki/images/Noxious_point.png?b5a13",
+            "I12": "https://oldschool.runescape.wiki/images/Bandos_chestplate.png?f928c",
+            "I13": "https://oldschool.runescape.wiki/images/Sunfire_fanatic_helm.png?16f54",
+            "J1": "https://oldschool.runescape.wiki/images/Archers_ring.png?c0a17",
+            "J2": "https://oldschool.runescape.wiki/images/Amulet_of_eternal_glory.png?248b4",
+            "J3": "https://oldschool.runescape.wiki/images/Dragon_claws.png?c85b3",
+            "J4": "https://oldschool.runescape.wiki/images/Blood_shard.png?3d4c6",
+            "J5": "https://oldschool.runescape.wiki/images/Torag%27s_helm.png?c9227",
+            "J6": "https://oldschool.runescape.wiki/images/Golden_pheasant_egg.png?1068a",
+            "J7": "https://oldschool.runescape.wiki/images/Granite_hammer.png?e75c0",
+            "J8": "https://oldschool.runescape.wiki/images/Dual_macuahuitl.png?77621",
+            "J9": "https://oldschool.runescape.wiki/images/Armadyl_chestplate.png?e56f0",
+            "J10": "https://oldschool.runescape.wiki/images/Tormented_synapse.png?4d370",
+            "J11": "https://oldschool.runescape.wiki/images/Saradomin_hilt.png?c4e91",
+            "J12": "https://oldschool.runescape.wiki/images/Eternal_crystal.png?b8cf0",
+            "J13": "https://oldschool.runescape.wiki/images/Calcified_acorn.png?77ca0",
+            "K1": "https://oldschool.runescape.wiki/images/Torva_full_helm.png?96920",
+            "K2": "https://oldschool.runescape.wiki/images/Tonalztics_of_ralos.png?942fb",
+            "K3": "https://oldschool.runescape.wiki/images/Fox_whistle.png?1068a",
+            "K4": "https://oldschool.runescape.wiki/images/Trident_of_the_seas_%28full%29.png?03aa0",
+            "K5": "https://oldschool.runescape.wiki/images/Virtus_mask.png?3a5cd",
+            "K6": "https://oldschool.runescape.wiki/images/Crystal_armour_seed.png?ec18f",
+            "K7": "https://oldschool.runescape.wiki/images/Bryophyta%27s_essence.png?6b752",
+            "K8": "https://oldschool.runescape.wiki/images/Virtus_mask.png?3a5cd",
+            "K9": "https://oldschool.runescape.wiki/images/Metamorphic_dust.png?ccf02",
+            "K10": "https://oldschool.runescape.wiki/images/Purifying_sigil.png?4df87",
+            "K11": "https://oldschool.runescape.wiki/images/Soulreaper_axe.png?3f17a",
+            "K12": "https://oldschool.runescape.wiki/images/Golden_tench.png?923a0",
+            "K13": "https://oldschool.runescape.wiki/images/Hydra_leather.png?7331d",
+            "L1": "https://oldschool.runescape.wiki/images/Enhanced_crystal_teleport_seed.png?b8cf0",
+            "L2": "https://oldschool.runescape.wiki/images/Bandos_tassets.png?f928c",
+            "L3": "https://oldschool.runescape.wiki/images/Ancestral_hat.png?ec289",
+            "L4": "https://oldschool.runescape.wiki/images/Staff_of_the_dead.png?3203e",
+            "L5": "https://oldschool.runescape.wiki/images/Warrior_ring.png?75a26",
+            "L6": "https://oldschool.runescape.wiki/images/Gnome_scarf.png?64612",
+            "L7": "https://oldschool.runescape.wiki/images/Osmumten%27s_fang.png?8bfab",
+            "L8": "https://oldschool.runescape.wiki/images/Tormented_synapse.png?4d370",
+            "L9": "https://oldschool.runescape.wiki/images/Dexterous_prayer_scroll.png?6b57c",
+            "L10": "https://oldschool.runescape.wiki/images/Dom.png?aa496",
+            "L11": "https://oldschool.runescape.wiki/images/Yami.png?48c0e",
+            "L12": "https://oldschool.runescape.wiki/images/Blue_moon_spear.png?c58ef",
+            "L13": "https://oldschool.runescape.wiki/images/Dizana%27s_quiver.png?f8a45",
+        };
         
         // Ship status silhouettes. true = sunk, false = still afloat.
         const SHIP_LAYOUTS = [
@@ -4130,6 +4345,40 @@ canvas {
             return `${rowLetter}${colNumber}`;
         }
 
+        function renderCellContent(cell, index, state) {
+            const coordinate = getCoordinate(index);
+            const icon = TASK_ICONS_BY_COORDINATE[coordinate];
+
+            if (icon) {
+                const iconSrc = typeof icon === 'string' ? icon : icon.src;
+                const iconAlt = typeof icon === 'string' ? cellTasks[coordinate] : icon.alt;
+                const img = document.createElement('img');
+                img.className = 'cell-task-icon';
+                img.src = iconSrc;
+                img.alt = iconAlt || '';
+                img.loading = 'lazy';
+                img.decoding = 'async';
+                cell.classList.add('has-task-icon');
+                cell.appendChild(img);
+            } else {
+                cell.classList.remove('has-task-icon');
+            }
+
+            if (state === 'hit') {
+                const mark = document.createElement('span');
+                mark.className = 'cell-mark hit-mark';
+                mark.setAttribute('aria-hidden', 'true');
+                mark.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>';
+                cell.appendChild(mark);
+            } else if (state === 'miss') {
+                const mark = document.createElement('span');
+                mark.className = 'cell-mark miss-mark';
+                mark.setAttribute('aria-hidden', 'true');
+                mark.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 7 L17 17 M17 7 L7 17"/></svg>';
+                cell.appendChild(mark);
+            }
+        }
+
 
         function getShootingTeam(targetBoardTeam) {
             return targetBoardTeam === 'team1' ? 'team2' : 'team1';
@@ -4170,6 +4419,11 @@ canvas {
             let tooltip = cell.querySelector('.cell-tooltip');
 
             if (!cellTasks[coordinate]) {
+                if (tooltip) tooltip.remove();
+                return;
+            }
+
+            if (cell.dataset.tooltipActive !== 'true') {
                 if (tooltip) tooltip.remove();
                 return;
             }
@@ -4539,8 +4793,19 @@ canvas {
                     showContextMenu(e, team, i);
                 });
                 
-                // Add tooltip if task exists for this cell
-                updateCellTooltip(cell, team, i, null);
+                renderCellContent(cell, i, null);
+
+                cell.addEventListener('mouseenter', () => {
+                    cell.dataset.tooltipActive = 'true';
+                    const currentState = boardStates && boardStates[team] ? boardStates[team][i] : null;
+                    updateCellTooltip(cell, team, i, currentState);
+                });
+
+                cell.addEventListener('mouseleave', () => {
+                    delete cell.dataset.tooltipActive;
+                    const tooltip = cell.querySelector('.cell-tooltip');
+                    if (tooltip) tooltip.remove();
+                });
                 
                 grid.appendChild(cell);
             }
@@ -4833,13 +5098,12 @@ canvas {
             
             if (state === 'hit') {
                 cell.classList.add('hit');
-                cell.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></svg>';
             } else if (state === 'miss') {
                 cell.classList.add('miss');
-                cell.innerHTML = '<svg viewBox="0 0 24 24"><path d="M7 7 L17 17 M17 7 L7 17"/></svg>';
-            } else {
-                cell.innerHTML = '';
             }
+
+            cell.innerHTML = '';
+            renderCellContent(cell, index, state);
             
             // Re-add and refresh the tooltip with completed-by details when the tile is marked.
             if (tooltip) {
