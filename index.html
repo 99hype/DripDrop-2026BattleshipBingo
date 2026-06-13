@@ -3083,6 +3083,58 @@ canvas {
     }
 </style>
 
+<style id="miss-and-shot-totals-patch">
+    .boards-container .cell.miss {
+        background: #191c21 !important;
+        border-color: #424851 !important;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08) !important;
+    }
+
+    .boards-container .cell.miss svg path {
+        stroke: #e6d0a0;
+    }
+
+    .shot-log-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+    }
+
+    .shot-log-heading h3 {
+        margin-bottom: 0;
+    }
+
+    .shot-total {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        padding: 6px 12px;
+        border: 1px solid rgba(255,176,0,0.55);
+        border-radius: 6px;
+        background: rgba(0,0,0,0.35);
+        color: #ffe0a3;
+        font-size: 1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        white-space: nowrap;
+        text-shadow: 1px 1px 0 #000;
+    }
+
+    @media (max-width: 640px) {
+        .shot-log-heading {
+            align-items: flex-start;
+        }
+
+        .shot-total {
+            font-size: 0.86rem;
+            white-space: normal;
+        }
+    }
+</style>
+
 </head>
 <body>
     <div class="container">
@@ -3172,7 +3224,10 @@ canvas {
                     </div>
                 </div>
                 <div class="shot-log">
-                    <h3>Shots Fired - RED TEAM</h3>
+                    <div class="shot-log-heading">
+                        <h3>Shots Fired - RED TEAM</h3>
+                        <span class="shot-total" id="team1ShotTotal">Total Tiles Completed: 0</span>
+                    </div>
                     <div id="team1Log" class="log-entries">
                         <div class="log-empty">No shots fired yet</div>
                     </div>
@@ -3242,7 +3297,10 @@ canvas {
                     </div>
                 </div>
                 <div class="shot-log">
-                    <h3>Shots Fired - BLUE TEAM</h3>
+                    <div class="shot-log-heading">
+                        <h3>Shots Fired - BLUE TEAM</h3>
+                        <span class="shot-total" id="team2ShotTotal">Total Tiles Completed: 0</span>
+                    </div>
                     <div id="team2Log" class="log-entries">
                         <div class="log-empty">No shots fired yet</div>
                     </div>
@@ -5151,6 +5209,8 @@ canvas {
         function updateCounters() {
             const redCounter = document.getElementById('redTeamCounter');
             const blueCounter = document.getElementById('blueTeamCounter');
+            const redShotTotal = document.getElementById('team1ShotTotal');
+            const blueShotTotal = document.getElementById('team2ShotTotal');
 
             const redCount = Array.isArray(shotLogs.team1) ? shotLogs.team1.length : 0;
             const blueCount = Array.isArray(shotLogs.team2) ? shotLogs.team2.length : 0;
@@ -5161,6 +5221,14 @@ canvas {
 
             if (blueCounter) {
                 blueCounter.textContent = `${blueCount} ${blueCount === 1 ? 'TILE' : 'TILES'} COMPLETED`;
+            }
+
+            if (redShotTotal) {
+                redShotTotal.textContent = `Total Tiles Completed: ${redCount}`;
+            }
+
+            if (blueShotTotal) {
+                blueShotTotal.textContent = `Total Tiles Completed: ${blueCount}`;
             }
         }
 
