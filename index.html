@@ -3091,7 +3091,18 @@ canvas {
     }
 
     .boards-container .cell.miss svg path {
-        stroke: #e6d0a0;
+        stroke: #ffffff !important;
+        stroke-width: 4.25 !important;
+        stroke-linecap: round !important;
+    }
+
+    .boards-container .cell.miss .miss-mark {
+        filter: drop-shadow(0 2px 4px #000) drop-shadow(0 0 5px rgba(0,0,0,0.9));
+    }
+
+    .boards-container .cell.miss .miss-mark svg {
+        width: 34px;
+        height: 34px;
     }
 
     .shot-log-heading {
@@ -3123,6 +3134,34 @@ canvas {
         text-shadow: 1px 1px 0 #000;
     }
 
+    .bingo-runtime {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 12px;
+        padding: 8px 14px;
+        border: 2px solid rgba(255,176,0,0.58);
+        border-radius: 6px;
+        background: rgba(0,0,0,0.36);
+        color: #fff4c2;
+        font-family: 'RuneScapeWeb', 'RuneScape UF', 'RuneScapeHosted', 'RuneScapeEvent', 'RuneScapeUF', 'RuneScape-UF', monospace;
+        font-size: 1.08rem;
+        font-weight: 700;
+        line-height: 1.25;
+        text-shadow: 1px 1px 0 #000;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 4px 14px rgba(0,0,0,0.28);
+    }
+
+    .bingo-runtime-label {
+        color: var(--osrs-yellow);
+        text-transform: uppercase;
+    }
+
+    .bingo-runtime-value {
+        color: #ffffff;
+    }
+
     @media (max-width: 640px) {
         .shot-log-heading {
             align-items: flex-start;
@@ -3131,6 +3170,20 @@ canvas {
         .shot-total {
             font-size: 0.86rem;
             white-space: normal;
+        }
+
+        .boards-container .cell.miss .miss-mark svg {
+            width: 72%;
+            height: 72%;
+        }
+
+        .bingo-runtime {
+            display: flex;
+            max-width: 100%;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 7px 10px;
+            font-size: 0.92rem;
         }
     }
 </style>
@@ -3142,6 +3195,10 @@ canvas {
             <h1>Iron Drip/Drop</h1>
             <div class="subtitle">2026 Battleship Bingo</div>
             <div class="developer-credit">Developed by Hy pe/MistikHype &lt;3</div>
+            <div class="bingo-runtime" aria-live="off">
+                <span class="bingo-runtime-label">Bingo Running For:</span>
+                <span class="bingo-runtime-value" id="bingoRuntimeValue">0 days 0 hours 0 minutes 0 seconds</span>
+            </div>
         </header>
         
         <div class="admin-controls">
@@ -6177,6 +6234,31 @@ canvas {
             }
         }
 
+        const BINGO_START_TIME_MS = Date.parse('2026-06-12T18:00:00-04:00');
+
+        function formatBingoRuntime(elapsedMs) {
+            const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
+            const days = Math.floor(totalSeconds / 86400);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            return `${days} days ${hours} hours ${minutes} minutes ${seconds} seconds`;
+        }
+
+        function updateBingoRuntime() {
+            const timerEl = document.getElementById('bingoRuntimeValue');
+            if (!timerEl) return;
+
+            timerEl.textContent = formatBingoRuntime(Date.now() - BINGO_START_TIME_MS);
+        }
+
+        function startBingoRuntimeTimer() {
+            updateBingoRuntime();
+            setInterval(updateBingoRuntime, 1000);
+        }
+
+        startBingoRuntimeTimer();
         initializeBoards();
         listenForHostMode();
         initMapBuilder();
