@@ -3118,7 +3118,16 @@ canvas {
         margin-bottom: 0;
     }
 
-    .shot-total {
+    .shot-stats {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .shot-total,
+    .team-mvp {
         display: inline-flex;
         align-items: center;
         min-height: 32px;
@@ -3132,6 +3141,11 @@ canvas {
         text-transform: uppercase;
         white-space: nowrap;
         text-shadow: 1px 1px 0 #000;
+    }
+
+    .team-mvp {
+        border-color: rgba(92,184,92,0.68);
+        color: #d9ffd6;
     }
 
     .bingo-runtime {
@@ -3167,7 +3181,12 @@ canvas {
             align-items: flex-start;
         }
 
-        .shot-total {
+        .shot-stats {
+            justify-content: flex-start;
+        }
+
+        .shot-total,
+        .team-mvp {
             font-size: 0.86rem;
             white-space: normal;
         }
@@ -3283,7 +3302,10 @@ canvas {
                 <div class="shot-log">
                     <div class="shot-log-heading">
                         <h3>Shots Fired - RED TEAM</h3>
-                        <span class="shot-total" id="team1ShotTotal">Total Tiles Completed: 0</span>
+                        <div class="shot-stats">
+                            <span class="shot-total" id="team1ShotTotal">Total Tiles Completed: 0</span>
+                            <span class="team-mvp" id="team1Mvp">MVP: TBD</span>
+                        </div>
                     </div>
                     <div id="team1Log" class="log-entries">
                         <div class="log-empty">No shots fired yet</div>
@@ -3356,7 +3378,10 @@ canvas {
                 <div class="shot-log">
                     <div class="shot-log-heading">
                         <h3>Shots Fired - BLUE TEAM</h3>
-                        <span class="shot-total" id="team2ShotTotal">Total Tiles Completed: 0</span>
+                        <div class="shot-stats">
+                            <span class="shot-total" id="team2ShotTotal">Total Tiles Completed: 0</span>
+                            <span class="team-mvp" id="team2Mvp">MVP: TBD</span>
+                        </div>
                     </div>
                     <div id="team2Log" class="log-entries">
                         <div class="log-empty">No shots fired yet</div>
@@ -5268,6 +5293,8 @@ canvas {
             const blueCounter = document.getElementById('blueTeamCounter');
             const redShotTotal = document.getElementById('team1ShotTotal');
             const blueShotTotal = document.getElementById('team2ShotTotal');
+            const redMvp = document.getElementById('team1Mvp');
+            const blueMvp = document.getElementById('team2Mvp');
 
             const redCount = Array.isArray(shotLogs.team1) ? shotLogs.team1.length : 0;
             const blueCount = Array.isArray(shotLogs.team2) ? shotLogs.team2.length : 0;
@@ -5287,6 +5314,47 @@ canvas {
             if (blueShotTotal) {
                 blueShotTotal.textContent = `Total Tiles Completed: ${blueCount}`;
             }
+
+            if (redMvp) {
+                redMvp.textContent = getTeamMvpText('team1');
+            }
+
+            if (blueMvp) {
+                blueMvp.textContent = getTeamMvpText('team2');
+            }
+        }
+
+        function getTeamMvpText(team) {
+            const logs = Array.isArray(shotLogs[team]) ? shotLogs[team] : [];
+            const playerCounts = new Map();
+
+            logs.forEach(log => {
+                const playerName = log && log.completedBy ? String(log.completedBy).trim() : '';
+                if (!playerName) return;
+
+                const key = playerName.toLowerCase();
+                const current = playerCounts.get(key) || { name: playerName, count: 0 };
+                current.count += 1;
+                playerCounts.set(key, current);
+            });
+
+            if (playerCounts.size === 0) {
+                return 'MVP: TBD';
+            }
+
+            const leaders = Array.from(playerCounts.values())
+                .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+            const topCount = leaders[0].count;
+            const topPlayers = leaders.filter(player => player.count === topCount);
+            const tileLabel = topCount === 1 ? 'tile' : 'tiles';
+
+            if (topPlayers.length === 1) {
+                return `MVP: ${topPlayers[0].name} (${topCount} ${tileLabel})`;
+            }
+
+            const visibleNames = topPlayers.slice(0, 3).map(player => player.name).join(', ');
+            const extraCount = topPlayers.length > 3 ? ` +${topPlayers.length - 3}` : '';
+            return `MVP Tie: ${visibleNames}${extraCount} (${topCount} ${tileLabel})`;
         }
 
         function updateLogs() {
