@@ -2424,17 +2424,23 @@ canvas {
 
 <style id="roster-and-big-buttons-patch">
     .admin-controls {
-        gap: 14px !important;
-        align-items: stretch !important;
+        gap: 8px !important;
+        align-items: center !important;
     }
 
     .admin-controls .btn {
-        font-size: 1.15rem !important;
-        padding: 16px 24px !important;
-        min-height: 58px !important;
-        min-width: 150px !important;
+        font-family: 'Cabin', Arial, Helvetica, sans-serif !important;
+        font-size: 0.84rem !important;
+        font-weight: 700 !important;
+        padding: 8px 12px !important;
+        min-height: 40px !important;
+        min-width: 102px !important;
         line-height: 1.05 !important;
-        border-width: 3px !important;
+        letter-spacing: 0.04em !important;
+        border-width: 2px !important;
+        -webkit-font-smoothing: antialiased !important;
+        font-synthesis: weight !important;
+        text-rendering: geometricPrecision !important;
     }
 
     .roster-modal-content {
@@ -3176,6 +3182,270 @@ canvas {
         color: #ffffff;
     }
 
+    .top-mvp-section {
+        width: min(1120px, 100%);
+        margin: -14px auto 28px auto;
+        padding: 16px;
+        border: 2px solid rgba(255,176,0,0.58);
+        border-radius: 8px;
+        background: rgba(0,0,0,0.32);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08), 0 5px 18px rgba(0,0,0,0.24);
+    }
+
+    .top-mvp-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+
+    .top-mvp-heading h2 {
+        color: var(--osrs-yellow);
+        font-size: 1.35rem;
+        line-height: 1.1;
+        text-shadow: 2px 2px 0 #000;
+        text-transform: uppercase;
+    }
+
+    .top-mvp-total {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        padding: 6px 12px;
+        border: 1px solid rgba(92,184,92,0.68);
+        border-radius: 6px;
+        background: rgba(0,0,0,0.35);
+        color: #d9ffd6;
+        font-size: 1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-shadow: 1px 1px 0 #000;
+    }
+
+    .top-mvp-list {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 10px;
+        list-style: none;
+        counter-reset: top-mvp-rank;
+    }
+
+    .top-mvp-item {
+        counter-increment: top-mvp-rank;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 8px 10px;
+        align-items: center;
+        min-width: 0;
+        padding: 10px;
+        border: 1px solid rgba(255,216,74,0.28);
+        border-radius: 6px;
+        background: rgba(18,26,40,0.74);
+    }
+
+    .top-mvp-item::before {
+        content: counter(top-mvp-rank);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        border: 1px solid rgba(255,176,0,0.7);
+        border-radius: 50%;
+        background: rgba(255,176,0,0.16);
+        color: var(--osrs-yellow);
+        font-weight: 700;
+        text-shadow: 1px 1px 0 #000;
+    }
+
+    .top-mvp-name {
+        min-width: 0;
+        color: #ffffff;
+        font-size: 1.08rem;
+        font-weight: 700;
+        line-height: 1.1;
+        overflow-wrap: anywhere;
+        text-shadow: 1px 1px 0 #000;
+    }
+
+    .top-mvp-count {
+        grid-column: 1 / -1;
+        color: #ffe0a3;
+        font-size: 0.96rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-shadow: 1px 1px 0 #000;
+    }
+
+    .top-mvp-team {
+        grid-column: 1 / -1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: fit-content;
+        max-width: 100%;
+        padding: 5px 9px;
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 6px;
+        background: rgba(0,0,0,0.28);
+        color: #cfd8e6;
+        font-size: 0.86rem;
+        font-weight: 700;
+        line-height: 1.15;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .top-mvp-team.red {
+        color: #ffb3ad;
+        border-color: rgba(214,58,53,0.55);
+    }
+
+    .top-mvp-team.blue {
+        color: #adcfff;
+        border-color: rgba(58,123,213,0.55);
+    }
+
+    .top-mvp-empty {
+        grid-column: 1 / -1;
+        padding: 14px;
+        color: #fff1a8;
+        text-align: center;
+        font-size: 1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-shadow: 1px 1px 0 #000;
+    }
+
+    .mvp-modal-content {
+        width: min(1150px, 96vw) !important;
+        max-width: 1150px !important;
+    }
+
+    .mvp-modal-summary {
+        display: inline-flex;
+        align-items: center;
+        min-height: 34px;
+        margin-bottom: 16px;
+        padding: 7px 13px;
+        border: 1px solid rgba(92,184,92,0.68);
+        border-radius: 6px;
+        background: rgba(0,0,0,0.35);
+        color: #d9ffd6;
+        font-size: 1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-shadow: 1px 1px 0 #000;
+    }
+
+    .mvp-ranking-table {
+        border: 1px solid rgba(255,216,74,0.25);
+        border-radius: 8px;
+        overflow: hidden;
+        background: rgba(0,0,0,0.24);
+    }
+
+    .mvp-ranking-header,
+    .mvp-ranking-row {
+        display: grid;
+        grid-template-columns: 66px minmax(170px, 1.6fr) minmax(120px, 1fr) 100px 90px 90px;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 12px;
+    }
+
+    .mvp-ranking-header {
+        color: var(--osrs-yellow);
+        background: rgba(0,0,0,0.48);
+        font-size: 0.88rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-shadow: 1px 1px 0 #000;
+    }
+
+    .mvp-ranking-rows {
+        max-height: min(62vh, 720px);
+        overflow-y: auto;
+    }
+
+    .mvp-ranking-row {
+        border-top: 1px solid rgba(255,216,74,0.14);
+        color: #ffffff;
+        font-size: 1rem;
+        text-shadow: 1px 1px 0 #000;
+    }
+
+    .mvp-ranking-row:nth-child(even) {
+        background: rgba(255,255,255,0.035);
+    }
+
+    .mvp-rank {
+        color: var(--osrs-yellow);
+        font-weight: 700;
+    }
+
+    .mvp-player-name {
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font-weight: 700;
+    }
+
+    .mvp-team-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: fit-content;
+        max-width: 100%;
+        padding: 5px 9px;
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 6px;
+        background: rgba(0,0,0,0.28);
+        font-size: 0.86rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .mvp-team-pill.red {
+        color: #ffb3ad;
+        border-color: rgba(214,58,53,0.55);
+    }
+
+    .mvp-team-pill.blue {
+        color: #adcfff;
+        border-color: rgba(58,123,213,0.55);
+    }
+
+    .mvp-team-pill.both {
+        color: #fff1a8;
+        border-color: rgba(255,176,0,0.55);
+    }
+
+    .mvp-tile-count {
+        color: #ffe0a3;
+        font-weight: 700;
+    }
+
+    .mvp-red-count {
+        color: #ffb3ad;
+    }
+
+    .mvp-blue-count {
+        color: #adcfff;
+    }
+
+    .mvp-ranking-empty {
+        padding: 18px;
+        color: #fff1a8;
+        text-align: center;
+        font-size: 1rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-shadow: 1px 1px 0 #000;
+    }
+
     @media (max-width: 640px) {
         .shot-log-heading {
             align-items: flex-start;
@@ -3204,6 +3474,48 @@ canvas {
             padding: 7px 10px;
             font-size: 0.92rem;
         }
+
+        .top-mvp-section {
+            margin-top: 0;
+            padding: 12px;
+        }
+
+        .top-mvp-heading h2 {
+            font-size: 1.08rem;
+        }
+
+        .top-mvp-total {
+            font-size: 0.86rem;
+            white-space: normal;
+        }
+
+        .top-mvp-list {
+            grid-template-columns: 1fr;
+        }
+
+        .top-mvp-item {
+            grid-template-columns: auto minmax(0, 1fr);
+        }
+
+        .mvp-ranking-header {
+            display: none;
+        }
+
+        .mvp-ranking-row {
+            grid-template-columns: auto minmax(0, 1fr);
+            gap: 8px 12px;
+        }
+
+        .mvp-rank {
+            grid-row: span 4;
+        }
+
+        .mvp-team-pill,
+        .mvp-tile-count,
+        .mvp-red-count,
+        .mvp-blue-count {
+            justify-self: start;
+        }
     }
 </style>
 
@@ -3222,12 +3534,23 @@ canvas {
         
         <div class="admin-controls">
             <button class="btn utility-btn" onclick="openTaskListModal()">See Full Task List</button>
+            <button class="btn utility-btn" onclick="openMvpModal()">MVP Rankings</button>
             <button class="btn utility-btn" onclick="openRulesModal()">Rules</button>
             <button class="btn utility-btn" onclick="openRosterModal()">Roster</button>
             <button class="btn utility-btn" onclick="toggleMapBuilder()">Map Builder</button>
             <button class="btn" id="adminBtn">Host Mode</button>
             <button class="btn global-reset-btn" id="globalResetBtn" onclick="showGlobalResetModal()" style="display: none;">Reset All</button>
         </div>
+
+        <section class="top-mvp-section" aria-labelledby="topMvpTitle">
+            <div class="top-mvp-heading">
+                <h2 id="topMvpTitle">Top 5 MVPs</h2>
+                <span class="top-mvp-total" id="topMvpTotal">0 tiles completed</span>
+            </div>
+            <ol class="top-mvp-list" id="topMvpList">
+                <li class="top-mvp-empty">No completed tiles yet</li>
+            </ol>
+        </section>
         
         <div class="boards-container">
             <div class="roster-panel red-roster" id="redRosterPanel">
@@ -3487,6 +3810,25 @@ canvas {
         </div>
     </div>
 
+    <div class="modal" id="mvpModal">
+        <div class="modal-content large-modal mvp-modal-content">
+            <button class="modal-x-btn" onclick="closeMvpModal()" aria-label="Close MVP rankings">×</button>
+            <h2>MVP Rankings</h2>
+            <div class="mvp-modal-summary" id="mvpModalSummary">0 tiles completed</div>
+            <div class="mvp-ranking-table" role="table" aria-label="MVP rankings">
+                <div class="mvp-ranking-header" role="row">
+                    <div>Rank</div>
+                    <div>Player</div>
+                    <div>Team</div>
+                    <div>Tiles</div>
+                    <div>Red</div>
+                    <div>Blue</div>
+                </div>
+                <div class="mvp-ranking-rows" id="mvpRankingRows"></div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal" id="rulesModal">
         <div class="modal-content large-modal">
 
@@ -3501,7 +3843,7 @@ canvas {
                     <li>If one tile is completed using a specific piece, another tile requiring that same set must use a different valid piece.</li>
                     <li>Example: if Ancestral Hat is submitted for one tile, another Ancestral tile must use a different valid piece, such as Body or Legs.</li>
                     <li>Skilling pet and bossing pets may be used as a free-choice completion for any one tile. One time use (one boss, one skill). Must be used immediately.</li>
-                    <li>Any megarare obtained (Scythe of Vitur, Twisted Bow, Tumeken's Shadow) will award a <strong>ONE-TIME Revive</strong>. This may be used at any time to revive a shot tile, requiring the opposing team to complete it again. This can be utilized <strong>ONCE</strong> per unique megarare (Twisted Bow, Scythe, Shadow). You cannot revive a tile again once it has already been revived once.</li>
+                    <li>Any megarare obtained (Scythe of Vitur, Twisted Bow, Tumeken's Shadow) will award a <strong>ONE-TIME Revive</strong>. This may be used at any time to revive a shot tile, requiring the opposing team to complete it again. This can be utilized <strong>ONCE</strong> per unique megarare (Twisted Bow, Scythe, Shadow). You cannot revive a tile again once it has already been revived once, and you cannot revive a tile if its entire boat has already been sunk.</li>
                     <li>Skotizo and Chompy pets do <strong>not</strong> count.</li>
                     <li>Skotizo drops do <strong>not</strong> count toward any tile completion.</li>
                     <li>Fishing Barrel, Tackle Box, Acorns, and Forestry-related items require a before screenshot.</li>
@@ -5286,6 +5628,178 @@ canvas {
                 }
             });
         }
+
+        function getOverallMvpLeaders() {
+            const playerCounts = new Map();
+            let totalCompleted = 0;
+
+            ['team1', 'team2'].forEach(team => {
+                const logs = Array.isArray(shotLogs[team]) ? shotLogs[team] : [];
+                totalCompleted += logs.length;
+
+                logs.forEach(log => {
+                    const playerName = log && log.completedBy ? String(log.completedBy).trim() : '';
+                    if (!playerName) return;
+
+                    const key = playerName.toLowerCase();
+                    const current = playerCounts.get(key) || {
+                        name: playerName,
+                        count: 0,
+                        team1: 0,
+                        team2: 0,
+                        latestTeam: team,
+                        latestTimestamp: 0
+                    };
+                    const parsedTimestamp = log && log.timestamp ? new Date(log.timestamp).getTime() : 0;
+                    const logTimestamp = Number.isFinite(parsedTimestamp) ? parsedTimestamp : 0;
+                    current.count += 1;
+                    current[team] += 1;
+                    if (logTimestamp >= current.latestTimestamp) {
+                        current.latestTeam = team;
+                        current.latestTimestamp = logTimestamp;
+                    }
+                    playerCounts.set(key, current);
+                });
+            });
+
+            return {
+                totalCompleted,
+                leaders: Array.from(playerCounts.values())
+                    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+            };
+        }
+
+        function updateTopMvpLeaderboard() {
+            const list = document.getElementById('topMvpList');
+            const total = document.getElementById('topMvpTotal');
+            if (!list) return;
+
+            const { leaders, totalCompleted } = getOverallMvpLeaders();
+            const totalLabel = totalCompleted === 1 ? 'tile' : 'tiles';
+
+            if (total) {
+                total.textContent = `${totalCompleted} ${totalLabel} completed`;
+            }
+
+            list.innerHTML = '';
+
+            if (leaders.length === 0) {
+                const empty = document.createElement('li');
+                empty.className = 'top-mvp-empty';
+                empty.textContent = totalCompleted > 0 ? 'No completed-by names yet' : 'No completed tiles yet';
+                list.appendChild(empty);
+                return;
+            }
+
+            leaders.slice(0, 5).forEach(player => {
+                const tileLabel = player.count === 1 ? 'tile' : 'tiles';
+                const item = document.createElement('li');
+                item.className = 'top-mvp-item';
+
+                const name = document.createElement('div');
+                name.className = 'top-mvp-name';
+                name.textContent = player.name;
+
+                const count = document.createElement('div');
+                count.className = 'top-mvp-count';
+                count.textContent = `${player.count} ${tileLabel}`;
+
+                const team = getMvpTeamLabel(player);
+                const teamBadge = document.createElement('div');
+                teamBadge.className = `top-mvp-team ${team.className}`;
+                teamBadge.textContent = team.label;
+
+                item.appendChild(name);
+                item.appendChild(count);
+                item.appendChild(teamBadge);
+                list.appendChild(item);
+            });
+        }
+
+        function getMvpTeamLabel(player) {
+            const redCount = player && player.team1 ? player.team1 : 0;
+            const blueCount = player && player.team2 ? player.team2 : 0;
+
+            if (redCount > blueCount) {
+                return { label: 'Red Team', className: 'red' };
+            }
+
+            if (blueCount > redCount) {
+                return { label: 'Blue Team', className: 'blue' };
+            }
+
+            if (player && player.latestTeam === 'team2') {
+                return { label: 'Blue Team', className: 'blue' };
+            }
+
+            return { label: 'Red Team', className: 'red' };
+        }
+
+        function updateMvpModalContent() {
+            const rows = document.getElementById('mvpRankingRows');
+            const summary = document.getElementById('mvpModalSummary');
+            if (!rows) return;
+
+            const { leaders, totalCompleted } = getOverallMvpLeaders();
+            const totalLabel = totalCompleted === 1 ? 'tile' : 'tiles';
+
+            if (summary) {
+                summary.textContent = `${totalCompleted} ${totalLabel} completed`;
+            }
+
+            rows.innerHTML = '';
+
+            if (leaders.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'mvp-ranking-empty';
+                empty.textContent = totalCompleted > 0 ? 'No completed-by names yet' : 'No completed tiles yet';
+                rows.appendChild(empty);
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+
+            leaders.forEach((player, index) => {
+                const team = getMvpTeamLabel(player);
+                const row = document.createElement('div');
+                row.className = 'mvp-ranking-row';
+                row.setAttribute('role', 'row');
+
+                const rank = document.createElement('div');
+                rank.className = 'mvp-rank';
+                rank.textContent = `#${index + 1}`;
+
+                const name = document.createElement('div');
+                name.className = 'mvp-player-name';
+                name.textContent = player.name;
+
+                const teamPill = document.createElement('div');
+                teamPill.className = `mvp-team-pill ${team.className}`;
+                teamPill.textContent = team.label;
+
+                const total = document.createElement('div');
+                total.className = 'mvp-tile-count';
+                total.textContent = player.count;
+
+                const red = document.createElement('div');
+                red.className = 'mvp-red-count';
+                red.textContent = player.team1;
+
+                const blue = document.createElement('div');
+                blue.className = 'mvp-blue-count';
+                blue.textContent = player.team2;
+
+                row.appendChild(rank);
+                row.appendChild(name);
+                row.appendChild(teamPill);
+                row.appendChild(total);
+                row.appendChild(red);
+                row.appendChild(blue);
+                fragment.appendChild(row);
+            });
+
+            rows.appendChild(fragment);
+        }
         
 
         function updateCounters() {
@@ -5322,6 +5836,9 @@ canvas {
             if (blueMvp) {
                 blueMvp.textContent = getTeamMvpText('team2');
             }
+
+            updateTopMvpLeaderboard();
+            updateMvpModalContent();
         }
 
         function getTeamMvpText(team) {
@@ -5677,6 +6194,15 @@ canvas {
             document.getElementById('taskListModal').classList.remove('active');
         }
 
+        function openMvpModal() {
+            updateMvpModalContent();
+            document.getElementById('mvpModal').classList.add('active');
+        }
+
+        function closeMvpModal() {
+            document.getElementById('mvpModal').classList.remove('active');
+        }
+
         function openRulesModal() {
             document.getElementById('rulesModal').classList.add('active');
         }
@@ -5969,7 +6495,7 @@ canvas {
         // Initialize on load
 
 
-        ['taskListModal', 'rulesModal'].forEach(id => {
+        ['taskListModal', 'mvpModal', 'rulesModal'].forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 el.addEventListener('click', (e) => {
