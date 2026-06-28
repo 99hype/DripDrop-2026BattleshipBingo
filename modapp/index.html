@@ -521,6 +521,23 @@ body {
   margin: 20px auto;
   border-radius: 2px;
 }
+.overlay-admin { margin-top: 24px; }
+.overlay-admin-toggle {
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: var(--text4);
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.03em;
+  transition: color 0.15s;
+}
+.overlay-admin-toggle:hover { color: var(--text3); }
+.overlay-admin-panel {
+  display: none;
+  margin-top: 10px;
+}
+.overlay-admin-panel.open { display: block; }
 
 /* ── Modal ── */
 .modal-backdrop {
@@ -617,6 +634,16 @@ body {
     <div class="closed-card-title">Applications are closed</div>
     <div class="closed-card-divider"></div>
     <div class="closed-card-sub">Sorry, we're not currently accepting mod applications. Please check back later and keep an eye on the Discord for announcements.</div>
+    <div class="overlay-admin">
+      <button class="overlay-admin-toggle" onclick="toggleOverlayAdmin()">Admin</button>
+      <div class="overlay-admin-panel" id="overlay-admin-panel">
+        <div class="admin-row">
+          <input type="password" id="overlay-admin-pw" placeholder="Enter password..." />
+          <button class="admin-act" onclick="overlayAdminAction()">Open submissions</button>
+        </div>
+        <div class="admin-status" id="overlay-admin-status"></div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -876,6 +903,44 @@ function closeModal() {
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ── Overlay admin ─────────────────────────────────────────────────────────────
+function toggleOverlayAdmin() {
+  document.getElementById('overlay-admin-panel').classList.toggle('open');
+}
+
+async function overlayAdminAction() {
+  const pw   = document.getElementById('overlay-admin-pw').value;
+  const stat = document.getElementById('overlay-admin-status');
+  const hash = await sha256(pw);
+
+  if (hash !== PW_HASH) {
+    stat.textContent = 'Incorrect password.';
+    stat.className = 'admin-status err';
+    return;
+  }
+
+  stat.textContent = 'Opening...';
+  stat.className = 'admin-status ok';
+
+  try {
+    const res  = await fetch(WORKER_URL + "toggle", {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ pwHash: hash, open: true }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+
+    appsClosed = false;
+    applyState();
+  } catch {
+    stat.textContent = 'Failed. Check your connection and try again.';
+    stat.className = 'admin-status err';
+  }
+
+  document.getElementById('overlay-admin-pw').value = '';
+}
 
 // ── Admin ─────────────────────────────────────────────────────────────────────
 function toggleAdmin() {
