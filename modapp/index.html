@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Iron Drip/Drop — Mod Application</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #e8e8e8;
+  --s0:        #e0e0e0;
+  --s1:        #d8d8d8;
+  --s2:        #f0f0f0;
+  --s3:        #fafafa;
+  --b:         #c8c8c8;
+  --b2:        #b8b8b8;
+  --b3:        #a0a0a0;
+  --red:       #cc2a1e;
+  --red-soft:  rgba(204,42,30,0.1);
+  --text:      #111111;
+  --text2:     #444444;
+  --text3:     #888888;
+  --text4:     #aaaaaa;
+  --radius:    8px;
+  --shadow:    0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  background: #0f0f11;
+  border-bottom: 1px solid #2a2a2a;
+  padding: 72px 24px 60px;
+  overflow: hidden;
+}
+
+/* animated gradient orb */
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -120px; left: 50%;
+  transform: translateX(-50%);
+  width: 700px; height: 400px;
+  background: radial-gradient(ellipse at center, rgba(204,42,30,0.18) 0%, rgba(204,42,30,0.06) 40%, transparent 70%);
+  animation: orb-pulse 6s ease-in-out infinite;
+  pointer-events: none;
+}
+/* subtle noise grain overlay */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  background-size: 180px;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+@keyframes orb-pulse {
+  0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
+  50%       { opacity: 0.7; transform: translateX(-50%) scale(1.12); }
+}
+
+.hero-inner {
+  max-width: 720px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.hero-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 20px;
+  animation: fade-up 0.6s ease both;
+}
+.hero-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--red);
+  flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(204,42,30,0.8);
+  animation: dot-glow 2.5s ease-in-out infinite;
+}
+@keyframes dot-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(204,42,30,0.6); }
+  50%       { box-shadow: 0 0 12px rgba(204,42,30,1), 0 0 24px rgba(204,42,30,0.4); }
+}
+.hero-title {
+  font-size: clamp(2.4rem, 7vw, 4.2rem);
+  font-weight: 700;
+  line-height: 1.0;
+  letter-spacing: -0.035em;
+  color: #ffffff;
+  margin-bottom: 16px;
+  animation: fade-up 0.6s 0.1s ease both;
+}
+.hero-title-accent {
+  display: block;
+  background: linear-gradient(90deg, #cc2a1e, #ff6b5b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 4s ease-in-out infinite;
+  background-size: 200% auto;
+}
+@keyframes shimmer {
+  0%   { background-position: 0% center; }
+  50%  { background-position: 100% center; }
+  100% { background-position: 0% center; }
+}
+.hero-sub {
+  font-size: 15px;
+  color: rgba(255,255,255,0.45);
+  line-height: 1.7;
+  max-width: 500px;
+  font-weight: 400;
+  animation: fade-up 0.6s 0.2s ease both;
+}
+.hero-bottom {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+  flex-wrap: wrap;
+  animation: fade-up 0.6s 0.3s ease both;
+}
+
+/* hero divider line animation */
+.hero-line {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(204,42,30,0.5) 30%, rgba(204,42,30,0.8) 50%, rgba(204,42,30,0.5) 70%, transparent 100%);
+  background-size: 200% auto;
+  animation: line-sweep 4s linear infinite;
+}
+@keyframes line-sweep {
+  0%   { background-position: 100% center; }
+  100% { background-position: -100% center; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero::before, .hero-dot, .hero-title-accent, .hero-line { animation: none; }
+  .hero-eyebrow, .hero-title, .hero-sub, .hero-bottom { animation: none; }
+}
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid;
+  transition: all 0.3s;
+}
+.status-pill.open {
+  background: rgba(22,163,74,0.12);
+  border-color: rgba(22,163,74,0.35);
+  color: #4ade80;
+}
+.status-pill.closed {
+  background: rgba(204,42,30,0.12);
+  border-color: rgba(204,42,30,0.35);
+  color: #ff6b5b;
+}
+.sdot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.status-pill.open .sdot { animation: blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+/* ── Page ── */
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+/* ── Section header ── */
+.sec-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 44px 0 18px;
+}
+.sec-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  white-space: nowrap;
+}
+.sec-line {
+  flex: 1;
+  height: 1px;
+  background: var(--b);
+}
+
+/* ── Grid ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 500px) { .grid-2 { grid-template-columns: 1fr; } }
+
+/* ── Fields ── */
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+}
+.field input, .field textarea {
+  background: var(--s3);
+  border: 1px solid var(--b);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  padding: 10px 13px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: var(--shadow);
+  resize: vertical;
+}
+.field input::placeholder, .field textarea::placeholder { color: var(--text4); }
+.field input:hover, .field textarea:hover { border-color: var(--b2); }
+.field input:focus, .field textarea:focus {
+  border-color: var(--b3);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+}
+.field textarea { min-height: 100px; line-height: 1.65; }
+.char-hint { font-size: 11px; color: var(--text4); text-align: right; }
+
+/* ── Question card ── */
+.qcard {
+  background: var(--s3);
+  border: 1px solid var(--b);
+  border-radius: 10px;
+  padding: 18px 20px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+  transition: border-color 0.15s;
+}
+.qcard:focus-within { border-color: var(--b2); }
+.q-tag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text4);
+  margin-bottom: 6px;
+}
+.q-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.qcard textarea {
+  width: 100%;
+  background: var(--s2);
+  border: 1px solid var(--b);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  padding: 10px 13px;
+  resize: vertical;
+  min-height: 96px;
+  line-height: 1.65;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.qcard textarea::placeholder { color: var(--text4); }
+.qcard textarea:hover { border-color: var(--b2); }
+.qcard textarea:focus {
+  border-color: var(--b3);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+}
+
+/* ── Chips ── */
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip {
+  padding: 7px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--b);
+  background: var(--s2);
+  color: var(--text2);
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  box-shadow: var(--shadow);
+}
+.chip:hover { border-color: var(--b2); color: var(--text); background: var(--s3); }
+.chip.active {
+  border-color: var(--text);
+  background: var(--text);
+  color: #fff;
+  font-weight: 500;
+  box-shadow: none;
+}
+.chip.red { border-color: rgba(204,42,30,0.35); color: var(--red); }
+.chip.red:hover { background: var(--red-soft); }
+.chip.red.active { background: var(--red); border-color: var(--red); color: #fff; }
+
+/* ── Submit ── */
+.submit-row { margin-top: 32px; display: flex; flex-direction: column; gap: 10px; }
+.submit-btn {
+  width: 100%;
+  padding: 13px;
+  background: var(--text);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  box-shadow: var(--shadow-md);
+}
+.submit-btn:hover { opacity: 0.85; }
+.submit-btn:active { transform: scale(0.998); }
+.submit-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.sending-msg { text-align: center; font-size: 13px; color: var(--text3); display: none; }
+.error-msg {
+  background: var(--red-soft);
+  border: 1px solid rgba(204,42,30,0.25);
+  color: var(--red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  display: none;
+  line-height: 1.5;
+}
+
+/* ── Alt screens ── */
+.alt-screen {
+  display: none;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 72px 24px;
+}
+.alt-icon { font-size: 44px; margin-bottom: 18px; }
+.alt-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+.alt-sub { font-size: 15px; color: var(--text2); line-height: 1.7; }
+
+/* ── Admin ── */
+.admin-bar {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px 24px 48px;
+  border-top: 1px solid var(--b);
+}
+.admin-toggle {
+  background: none;
+  border: none;
+  color: var(--text4);
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.15s;
+}
+.admin-toggle:hover { color: var(--text3); }
+.admin-panel {
+  display: none;
+  margin-top: 12px;
+  background: var(--s3);
+  border: 1px solid var(--b);
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: var(--shadow);
+}
+.admin-panel.open { display: block; }
+.admin-panel label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  margin-bottom: 8px;
+}
+.admin-row { display: flex; gap: 8px; }
+.admin-row input {
+  flex: 1;
+  background: var(--s2);
+  border: 1px solid var(--b);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.admin-row input:focus { border-color: var(--b3); }
+.admin-act {
+  padding: 9px 15px;
+  border-radius: var(--radius);
+  border: 1px solid var(--b);
+  background: var(--s2);
+  color: var(--text2);
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  box-shadow: var(--shadow);
+}
+.admin-act:hover { border-color: var(--b2); color: var(--text); }
+.admin-status {
+  margin-top: 10px;
+  font-size: 13px;
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  display: none;
+  line-height: 1.5;
+}
+.admin-status.ok {
+  background: rgba(22,163,74,0.1);
+  border: 1px solid rgba(22,163,74,0.25);
+  color: #15803d;
+  display: block;
+}
+.admin-status.err {
+  background: var(--red-soft);
+  border: 1px solid rgba(204,42,30,0.25);
+  color: var(--red);
+  display: block;
+}
+
+/* ── Closed overlay (persistent, non-dismissible) ── */
+.closed-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 900;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.closed-overlay.visible { display: flex; }
+.closed-card {
+  background: var(--s3);
+  border: 1px solid var(--b);
+  border-radius: 16px;
+  padding: 48px 36px 40px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.25), 0 4px 20px rgba(0,0,0,0.1);
+  animation: modal-in 0.22s ease;
+}
+.closed-card-icon {
+  font-size: 40px;
+  margin-bottom: 16px;
+}
+.closed-card-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.closed-card-sub {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.7;
+}
+.closed-card-divider {
+  width: 32px;
+  height: 2px;
+  background: var(--red);
+  margin: 20px auto;
+  border-radius: 2px;
+}
+
+/* ── Modal ── */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+.modal-backdrop.visible { display: flex; }
+.modal {
+  background: var(--s3);
+  border: 1px solid var(--b);
+  border-radius: 14px;
+  padding: 36px 32px 28px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2), 0 4px 16px rgba(0,0,0,0.1);
+  animation: modal-in 0.18s ease;
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-icon { font-size: 36px; margin-bottom: 14px; }
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.modal-sub {
+  font-size: 14px;
+  color: var(--text2);
+  line-height: 1.65;
+  margin-bottom: 24px;
+}
+.modal-btn {
+  width: 100%;
+  padding: 11px;
+  background: var(--text);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.modal-btn:hover { opacity: 0.85; }
+
+/* ── Footer ── */
+.footer {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text4);
+  letter-spacing: 0.05em;
+  padding-bottom: 32px;
+}
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-title">
+      Iron Drip/Drop
+      <span class="hero-title-accent">Mod Application</span>
+    </div>
+    <div class="hero-sub">We're looking for active, level-headed members who genuinely care about the community. Fill out the form below to apply.</div>
+    <div class="hero-bottom">
+      <span class="status-pill open" id="status-pill">
+        <span class="sdot"></span>
+        <span id="status-text">Accepting applications</span>
+      </span>
+    </div>
+  </div>
+  <div class="hero-line"></div>
+</div>
+
+<!-- Closed overlay (persistent, blocks interaction) -->
+<div class="closed-overlay" id="closed-overlay">
+  <div class="closed-card">
+    <div class="closed-card-icon">🔒</div>
+    <div class="closed-card-title">Applications are closed</div>
+    <div class="closed-card-divider"></div>
+    <div class="closed-card-sub">Sorry, we're not currently accepting mod applications. Please check back later and keep an eye on the Discord for announcements.</div>
+  </div>
+</div>
+
+<!-- Submit-blocked modal overlay -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-icon">🔒</div>
+    <div class="modal-title">Submissions are closed</div>
+    <div class="modal-sub">Sorry, we're not currently accepting mod applications. Please check back later and keep an eye on the Discord for announcements.</div>
+    <button class="modal-btn" onclick="closeModal()">Got it</button>
+  </div>
+</div>
+
+<!-- Form -->
+<div class="page" id="form-section">
+
+  <div class="sec-head"><span class="sec-label">Your info</span><span class="sec-line"></span></div>
+  <div class="grid-2">
+    <div class="field">
+      <label for="osrs-name">OSRS username</label>
+      <input type="text" id="osrs-name" placeholder="e.g. Hy pe" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label for="discord-name">Discord username</label>
+      <input type="text" id="discord-name" placeholder="e.g. hype#0420" autocomplete="off" />
+    </div>
+  </div>
+
+  <div class="sec-head"><span class="sec-label">Activity</span><span class="sec-line"></span></div>
+
+  <div class="qcard">
+    <div class="q-tag">Question 1</div>
+    <div class="q-text">How active are you in game on average?</div>
+    <div class="chips">
+      <button class="chip" data-group="ingame" onclick="pickChip(this)">~10 hrs / week</button>
+      <button class="chip" data-group="ingame" onclick="pickChip(this)">~25 hrs / week</button>
+      <button class="chip" data-group="ingame" onclick="pickChip(this)">~40 hrs / week</button>
+      <button class="chip" data-group="ingame" onclick="pickChip(this)">🎮 I have a problem</button>
+    </div>
+  </div>
+
+  <div class="qcard">
+    <div class="q-tag">Question 2</div>
+    <div class="q-text">On average, how active are you in the Discord server?</div>
+    <div class="chips">
+      <button class="chip" data-group="disc" onclick="pickChip(this)">Check in occasionally</button>
+      <button class="chip" data-group="disc" onclick="pickChip(this)">A few times a week</button>
+      <button class="chip" data-group="disc" onclick="pickChip(this)">Daily</button>
+      <button class="chip" data-group="disc" onclick="pickChip(this)">🔔 Never closes. I live here</button>
+    </div>
+  </div>
+
+  <div class="sec-head"><span class="sec-label">Moderation mindset</span><span class="sec-line"></span></div>
+
+  <div class="qcard">
+    <div class="q-tag">Question 3</div>
+    <div class="q-text">What would you do to help improve our community?</div>
+    <textarea id="q2" placeholder="Events, engagement, culture — what would you bring to the team?" oninput="uc(this,'c2',600)"></textarea>
+    <div class="char-hint" id="c2">0 / 600</div>
+  </div>
+
+  <div class="qcard">
+    <div class="q-tag">Question 4</div>
+    <div class="q-text">How do you handle drama or conflict while staying unbiased?</div>
+    <textarea id="q3" placeholder="Describe how you'd approach a dispute, especially if you're friends with one of the people involved..." oninput="uc(this,'c3',600)"></textarea>
+    <div class="char-hint" id="c3">0 / 600</div>
+  </div>
+
+  <div class="qcard">
+    <div class="q-tag">Question 5</div>
+    <div class="q-text">What experience do you have as a moderator or manager?</div>
+    <textarea id="q4" placeholder="Previous clan roles, Discord mods, community leadership, work management... anything relevant." oninput="uc(this,'c4',600)"></textarea>
+    <div class="char-hint" id="c4">0 / 600</div>
+  </div>
+
+  <div class="qcard">
+    <div class="q-tag">Question 6</div>
+    <div class="q-text">How do you handle adversity or non-constructive criticism directed at you?</div>
+    <textarea id="q6" placeholder="Give an example of a time you were challenged unfairly and how you responded..." oninput="uc(this,'c6',600)"></textarea>
+    <div class="char-hint" id="c6">0 / 600</div>
+  </div>
+
+  <div class="sec-head"><span class="sec-label">Commitment</span><span class="sec-line"></span></div>
+
+  <div class="qcard">
+    <div class="q-tag">Question 7</div>
+    <div class="q-text">Do you have IRL responsibilities (job, family, school, etc.) that could affect your availability as a mod?</div>
+    <textarea id="q7" placeholder="Be honest. We understand life happens — just let us know what to keep in mind." oninput="uc(this,'c7',400)"></textarea>
+    <div class="char-hint" id="c7">0 / 400</div>
+  </div>
+
+  <div class="qcard">
+    <div class="q-tag">Question 8</div>
+    <div class="q-text">What inspired you to volunteer as a moderator for Iron Drip/Drop?</div>
+    <textarea id="q8" placeholder="Tell us what this community means to you and why you want to help shape it..." oninput="uc(this,'c8',600)"></textarea>
+    <div class="char-hint" id="c8">0 / 600</div>
+  </div>
+
+  <div class="submit-row">
+    <button class="submit-btn" id="submit-btn" onclick="handleSubmit()">Submit application</button>
+    <div class="sending-msg" id="sending-msg">Sending your application...</div>
+    <div class="error-msg" id="error-msg"></div>
+  </div>
+</div>
+
+<!-- Success screen -->
+<div class="alt-screen" id="success-screen">
+  <div class="alt-icon">⚔️</div>
+  <div class="alt-title">Application received</div>
+  <div class="alt-sub">Thanks for applying to moderate Iron Drip/Drop.<br>Leadership will review your application and reach out via Discord.</div>
+</div>
+
+<!-- Admin -->
+<div class="admin-bar">
+  <button class="admin-toggle" onclick="toggleAdmin()">🔒 Admin</button>
+  <div class="admin-panel" id="admin-panel">
+    <label>Admin password</label>
+    <div class="admin-row">
+      <input type="password" id="admin-pw" placeholder="Enter password..." />
+      <button class="admin-act" id="admin-btn" onclick="adminAction()">Lock submissions</button>
+    </div>
+    <div class="admin-status" id="admin-status"></div>
+  </div>
+</div>
+
+<div class="footer">Iron Drip/Drop &mdash; OSRS Clan</div>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────────────────────────
+const WORKER_URL = "https://iron-drip-drop-mod-app.th-3f6.workers.dev/";
+const PW_HASH    = "552ac32821843c4f44dbcf1ee282124454a8c7aa4840c5a4538811afdb906b5a";
+
+let appsClosed = false;
+
+// ── SHA-256 ───────────────────────────────────────────────────────────────────
+async function sha256(str) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── Load global state on page load ────────────────────────────────────────────
+async function loadStatus() {
+  try {
+    const res  = await fetch(WORKER_URL + "status");
+    const data = await res.json();
+    appsClosed = !data.open;
+  } catch {
+    appsClosed = false;
+  }
+  applyState();
+}
+
+// ── Chip selection ────────────────────────────────────────────────────────────
+function pickChip(el) {
+  document.querySelectorAll(`.chip[data-group="${el.dataset.group}"]`).forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── Character counters ────────────────────────────────────────────────────────
+function uc(el, id, max) {
+  if (el.value.length > max) el.value = el.value.slice(0, max);
+  document.getElementById(id).textContent = `${el.value.length} / ${max}`;
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────────
+async function handleSubmit() {
+  if (appsClosed) { applyState(); return; }
+
+  const osrs = document.getElementById('osrs-name').value.trim();
+  const disc = document.getElementById('discord-name').value.trim();
+  if (!osrs || !disc) { alert('Please enter your OSRS username and Discord name.'); return; }
+
+  const ig = document.querySelector('.chip[data-group="ingame"].active');
+  const dc = document.querySelector('.chip[data-group="disc"].active');
+  if (!ig) { alert('Please select your in-game activity level (Question 1).'); return; }
+  if (!dc) { alert('Please select your Discord activity level (Question 2).'); return; }
+
+  const qFields = [
+    { id: 'q2', label: 'Question 3' },
+    { id: 'q3', label: 'Question 4' },
+    { id: 'q4', label: 'Question 5' },
+    { id: 'q6', label: 'Question 6' },
+    { id: 'q7', label: 'Question 7' },
+    { id: 'q8', label: 'Question 8' },
+  ];
+  for (const f of qFields) {
+    if (!document.getElementById(f.id).value.trim()) {
+      alert(`Please answer ${f.label} before submitting.`);
+      document.getElementById(f.id).focus();
+      return;
+    }
+  }
+
+  const btn     = document.getElementById('submit-btn');
+  const sending = document.getElementById('sending-msg');
+  const errBox  = document.getElementById('error-msg');
+
+  btn.disabled = true;
+  sending.style.display = 'block';
+  errBox.style.display = 'none';
+
+  const payload = {
+    osrs_name:           osrs,
+    discord_name:        disc,
+    q1_ingame_activity:  ig.textContent.trim(),
+    q2_community:        document.getElementById('q2').value.trim(),
+    q3_drama:            document.getElementById('q3').value.trim(),
+    q4_experience:       document.getElementById('q4').value.trim(),
+    q5_discord_activity: dc.textContent.trim(),
+    q6_adversity:        document.getElementById('q6').value.trim(),
+    q7_irl:              document.getElementById('q7').value.trim(),
+    q8_inspiration:      document.getElementById('q8').value.trim(),
+  };
+
+  try {
+    const res  = await fetch(WORKER_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    const data = await res.json();
+
+    if (res.status === 403) {
+      appsClosed = true;
+      applyState();
+      btn.disabled = false;
+      return;
+    }
+    if (res.status === 429) {
+      errBox.textContent = data.error || 'You have already submitted an application recently. Please wait 7 days before applying again.';
+      errBox.style.display = 'block';
+      btn.disabled = false;
+      return;
+    }
+    if (!res.ok) throw new Error(data.error || 'Unknown error');
+
+    document.getElementById('form-section').style.display = 'none';
+    document.getElementById('success-screen').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  } catch (err) {
+    errBox.textContent = 'Something went wrong sending your application. Please try again or reach out on Discord.';
+    errBox.style.display = 'block';
+    btn.disabled = false;
+  } finally {
+    sending.style.display = 'none';
+  }
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function openModal() {
+  document.getElementById('modal-backdrop').classList.add('visible');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modal-backdrop').classList.remove('visible');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+function toggleAdmin() {
+  document.getElementById('admin-panel').classList.toggle('open');
+}
+
+async function adminAction() {
+  const pw   = document.getElementById('admin-pw').value;
+  const stat = document.getElementById('admin-status');
+  const hash = await sha256(pw);
+
+  if (hash !== PW_HASH) {
+    stat.textContent = 'Incorrect password.';
+    stat.className = 'admin-status err';
+    return;
+  }
+
+  stat.textContent = 'Saving...';
+  stat.className = 'admin-status ok';
+
+  try {
+    const res  = await fetch(WORKER_URL + "toggle", {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ pwHash: hash, open: appsClosed }), // toggling
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed');
+
+    appsClosed = !data.open;
+    applyState();
+    stat.textContent = appsClosed ? 'Submissions locked globally.' : 'Submissions opened globally.';
+    stat.className = 'admin-status ok';
+  } catch {
+    stat.textContent = 'Failed to save. Check your connection and try again.';
+    stat.className = 'admin-status err';
+  }
+
+  document.getElementById('admin-pw').value = '';
+}
+
+// ── Apply state ───────────────────────────────────────────────────────────────
+function applyState() {
+  const pill    = document.getElementById('status-pill');
+  const pillTxt = document.getElementById('status-text');
+  const aBtn    = document.getElementById('admin-btn');
+  const overlay = document.getElementById('closed-overlay');
+
+  if (appsClosed) {
+    pill.className = 'status-pill closed';
+    pillTxt.textContent = 'Applications closed';
+    aBtn.textContent = 'Open submissions';
+    overlay.classList.add('visible');
+    document.body.style.overflow = 'hidden';
+  } else {
+    pill.className = 'status-pill open';
+    pillTxt.textContent = 'Accepting applications';
+    aBtn.textContent = 'Lock submissions';
+    overlay.classList.remove('visible');
+    document.body.style.overflow = '';
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadStatus();
+</script>
+</body>
+</html>
