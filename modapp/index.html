@@ -240,7 +240,7 @@ body {
   font-weight: 500;
   color: var(--text2);
 }
-.field input, .field textarea {
+.field input, .field textarea, .field select {
   background: var(--s3);
   border: 1px solid var(--b);
   border-radius: var(--radius);
@@ -254,8 +254,8 @@ body {
   resize: vertical;
 }
 .field input::placeholder, .field textarea::placeholder { color: var(--text4); }
-.field input:hover, .field textarea:hover { border-color: var(--b2); }
-.field input:focus, .field textarea:focus {
+.field input:hover, .field textarea:hover, .field select:hover { border-color: var(--b2); }
+.field input:focus, .field textarea:focus, .field select:focus {
   border-color: var(--b3);
   box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
 }
@@ -671,6 +671,40 @@ body {
       <input type="text" id="discord-name" placeholder="e.g. hype#0420" autocomplete="off" />
     </div>
   </div>
+  <div class="field" style="margin-top:12px;">
+    <label for="timezone">Timezone</label>
+    <select id="timezone">
+      <option value="" disabled selected>Select your timezone...</option>
+      <optgroup label="North America">
+        <option value="ET">Eastern Time (ET) — UTC-5/4</option>
+        <option value="CT">Central Time (CT) — UTC-6/5</option>
+        <option value="MT">Mountain Time (MT) — UTC-7/6</option>
+        <option value="PT">Pacific Time (PT) — UTC-8/7</option>
+        <option value="AKT">Alaska Time (AKT) — UTC-9/8</option>
+        <option value="HT">Hawaii Time (HT) — UTC-10</option>
+      </optgroup>
+      <optgroup label="Europe">
+        <option value="GMT">GMT / UTC+0</option>
+        <option value="CET">Central European Time (CET) — UTC+1/2</option>
+        <option value="EET">Eastern European Time (EET) — UTC+2/3</option>
+      </optgroup>
+      <optgroup label="Australia & Oceania">
+        <option value="AWST">Australian Western (AWST) — UTC+8</option>
+        <option value="ACST">Australian Central (ACST) — UTC+9:30</option>
+        <option value="AEST">Australian Eastern (AEST) — UTC+10/11</option>
+        <option value="NZST">New Zealand (NZST) — UTC+12/13</option>
+      </optgroup>
+      <optgroup label="Asia">
+        <option value="IST">India (IST) — UTC+5:30</option>
+        <option value="CST_ASIA">China / Singapore (CST/SGT) — UTC+8</option>
+        <option value="JST">Japan / Korea (JST/KST) — UTC+9</option>
+      </optgroup>
+      <optgroup label="Other">
+        <option value="BRT">Brazil (BRT) — UTC-3/2</option>
+        <option value="OTHER">Other / Not listed</option>
+      </optgroup>
+    </select>
+  </div>
 
   <div class="sec-head"><span class="sec-label">Activity</span><span class="sec-line"></span></div>
 
@@ -814,7 +848,9 @@ async function handleSubmit() {
 
   const osrs = document.getElementById('osrs-name').value.trim();
   const disc = document.getElementById('discord-name').value.trim();
+  const tz   = document.getElementById('timezone').value;
   if (!osrs || !disc) { alert('Please enter your OSRS username and Discord name.'); return; }
+  if (!tz) { alert('Please select your timezone.'); return; }
 
   const ig = document.querySelector('.chip[data-group="ingame"].active');
   const dc = document.querySelector('.chip[data-group="disc"].active');
@@ -848,6 +884,7 @@ async function handleSubmit() {
   const payload = {
     osrs_name:           osrs,
     discord_name:        disc,
+    timezone:            tz,
     q1_ingame_activity:  ig.textContent.trim(),
     q2_community:        document.getElementById('q2').value.trim(),
     q3_drama:            document.getElementById('q3').value.trim(),
