@@ -785,13 +785,15 @@ async function saveToSupabase() {
 function subscribeRealtime() {
   if (!sbClient) return;
   sbClient.channel('ladder_changes')
-    .on('postgres_changes', { event:'UPDATE', schema:'public', table:TABLE }, payload => {
-      if (payload.new && payload.new.state) {
-        state = payload.new.state;
-        renderAll();
-      }
+    .on('postgres_changes', { event:'INSERT', schema:'public', table:TABLE }, payload => {
+      if (payload.new && payload.new.state) { state = payload.new.state; renderAll(); }
     })
-    .subscribe();
+    .on('postgres_changes', { event:'UPDATE', schema:'public', table:TABLE }, payload => {
+      if (payload.new && payload.new.state) { state = payload.new.state; renderAll(); }
+    })
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') console.log('[LB] realtime connected');
+    });
 }
 
 // ── PERSISTENCE ───────────────────────────────────────────────────────────
