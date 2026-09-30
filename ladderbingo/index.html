@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🪜 Climbing the DROPped Ladder</title>
+<style>
+@font-face {
+  font-family: 'RuneScape';
+  src: url('https://cdn.jsdelivr.net/gh/runelite/runelite@master/runelite-client/src/main/resources/net/runelite/client/ui/runescape.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+@font-face {
+  font-family: 'RuneScape';
+  src: url('https://cdn.jsdelivr.net/gh/runelite/runelite@master/runelite-client/src/main/resources/net/runelite/client/ui/runescape_bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+:root {
+  --bg:      #0e0e0e;
+  --bg2:     #141414;
+  --panel:   #1a1a1a;
+  --panel2:  #222222;
+  --border:  #3a3a3a;
+  --border2: #505050;
+  --gold:    #FFB000;
+  --gold2:   #cc8800;
+  --text:    #e8e0c8;
+  --text2:   #aaa090;
+  --red:     #c03020;
+  --green:   #3a9a30;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'RuneScape', sans-serif;
+  font-weight: bold;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,.012) 40px, rgba(255,255,255,.012) 41px),
+    repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,.012) 40px, rgba(255,255,255,.012) 41px);
+  pointer-events: none; z-index: 0;
+}
+
+/* HOST BANNER */
+#host-banner {
+  display: none; background: var(--red);
+  text-align: center; padding: 8px 16px;
+  font-size: 15px; letter-spacing: 1px;
+  position: sticky; top: 0; z-index: 300;
+}
+#host-banner.active { display: block; }
+
+#host-btn {
+  position: fixed; top: 12px; right: 16px; z-index: 400;
+  background: var(--panel2); border: 1px solid var(--border2);
+  color: var(--gold); padding: 7px 14px; border-radius: 5px;
+  cursor: pointer; font-size: 13px;
+}
+#host-btn:hover { border-color: var(--gold); }
+
+/* HEADER */
+header {
+  position: relative; z-index: 1;
+  text-align: center; padding: 36px 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #1a1a1a 0%, var(--bg) 100%);
+}
+header h1 {
+  font-size: clamp(26px, 5vw, 52px);
+  color: var(--gold);
+  text-shadow: 0 0 20px rgba(255,176,0,.4), 2px 2px 0 #000;
+  letter-spacing: 2px;
+}
+header .tagline { color: var(--text2); font-size: 18px; margin-top: 8px; letter-spacing: 1px; }
+header .dates { color: var(--gold2); font-size: 18px; margin-top: 5px; }
+
+/* COUNTDOWN */
+#countdown-bar {
+  background: var(--panel2); border-bottom: 1px solid var(--border);
+  padding: 14px 16px; text-align: center;
+}
+#countdown-bar .label { font-size: 16px; color: var(--text2); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
+#countdown-digits { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.cd-unit { text-align: center; }
+.cd-num {
+  font-size: 36px; color: var(--gold);
+  text-shadow: 0 0 10px rgba(255,176,0,.3);
+  display: block; line-height: 1;
+  background: var(--panel); border: 1px solid var(--border2);
+  border-radius: 6px; padding: 4px 14px; min-width: 64px;
+}
+.cd-label { font-size: 14px; color: var(--text2); letter-spacing: 1px; margin-top: 4px; text-transform: uppercase; }
+.started-msg { font-size: 20px; color: var(--green); letter-spacing: 2px; }
+
+/* THREE-COLUMN LAYOUT: roster | ladder | roster */
+.main-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 0;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 0 60px;
+  position: relative; z-index: 1;
+  align-items: start;
+}
+.main-layout > * { min-width: 0; }
+
+/* ROSTERS PANEL (left column, all teams stacked) */
+#rosters-panel {
+  padding: 16px 12px;
+  position: sticky;
+  top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* SIDE ROSTERS */
+.side-roster {
+  padding: 0;
+  border: 2px solid;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.roster-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; cursor: pointer;
+  user-select: none;
+}
+.roster-header:hover { background: rgba(255,255,255,.04); }
+.roster-rank { font-size: 18px; margin-right: 4px; }
+.roster-name { font-size: 18px; flex: 1; }
+.roster-pts-badge {
+  font-size: 16px; color: var(--text2);
+  background: var(--panel2); border-radius: 6px;
+  padding: 2px 8px; margin-left: 6px; white-space: nowrap;
+}
+.roster-toggle { font-size: 14px; color: var(--text2); margin-left: 8px; transition: transform 0.2s; }
+.roster-toggle.open { transform: rotate(180deg); }
+.roster-body {
+  display: none; padding: 10px 12px 12px;
+  border-top: 1px solid var(--border);
+}
+.roster-body.open { display: block; }
+.rename-team-btn { display: none; font-size: 11px; color: var(--text2); background: transparent; border: none; cursor: pointer; padding: 0; text-decoration: underline; margin-bottom: 6px; }
+.rename-team-btn.hs { display: block; width: 100%; }
+.rename-team-btn:hover { color: var(--gold); }
+.side-roster-title {
+  font-size: 20px; color: var(--gold); letter-spacing: 1px;
+  margin-bottom: 4px; text-align: center;
+}
+.side-roster-pts {
+  font-size: 38px; color: var(--text);
+  text-align: center; line-height: 1; margin-bottom: 8px;
+}
+.side-roster-pts-label { font-size: 16px; color: var(--text2); text-align: center; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+.side-roster-divider { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+.side-players-label { font-size: 14px; color: var(--text2); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; text-align: center; }
+.side-player { font-size: 17px; color: var(--text); padding: 6px 10px; border-radius: 4px; background: var(--panel); border: 1px solid var(--border); margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+.remove-player { cursor: pointer; color: var(--text2); font-size: 14px; line-height: 1; display: none; }
+.remove-player.hs { display: inline; }
+.remove-player:hover { color: var(--red); }
+.add-player-row { display: none; margin-top: 8px; flex-direction: column; gap: 6px; }
+.add-player-row.hs { display: flex; }
+.add-player-row input { width: 100%; background: var(--bg); border: 1px solid var(--border2); color: var(--text); padding: 5px 8px; border-radius: 4px; font-size: 12px; }
+.add-player-row button { background: var(--panel2); border: 1px solid var(--border2); color: var(--gold); padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; width: 100%; }
+.add-player-row button:hover { border-color: var(--gold); }
+.rename-team-btn { display: none; font-size: 11px; color: var(--text2); background: transparent; border: none; cursor: pointer; padding: 0; text-decoration: underline; margin-bottom: 6px; }
+.rename-team-btn.hs { display: block; text-align: center; width: 100%; }
+.rename-team-btn:hover { color: var(--gold); }
+
+/* ADD TEAM SIDE */
+#add-team-btn-side {
+  display: none; margin: 10px 12px;
+  background: var(--panel); border: 1px dashed var(--border2); color: var(--gold2);
+  padding: 10px; border-radius: 6px; cursor: pointer; font-size: 13px; text-align: center; width: calc(100% - 24px);
+}
+#add-team-btn-side.hs { display: block; }
+#add-team-btn-side:hover { border-color: var(--gold); color: var(--gold); }
+
+/* CENTER LADDER COLUMN */
+.center-col { padding: 0 8px; min-width: 0; overflow: hidden; }
+
+/* SCOREBOARD strip (compact, above ladder in center) */
+#scoreboard-section { padding: 14px 0 10px; border-bottom: 1px solid var(--border); text-align: center; }
+#scoreboard-section h2 { color: var(--gold); font-size: 22px; letter-spacing: 1px; margin-bottom: 10px; }
+
+/* LADDER */
+#ladder { padding: 18px 0; }
+#ladder > h2 { color: var(--gold); font-size: 18px; letter-spacing: 1px; margin-bottom: 18px; text-align: center; }
+.tier-section { margin-bottom: 24px; }
+
+.tier-heading {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 16px; border-radius: 6px 6px 0 0;
+  border: 1px solid; border-bottom: none;
+  font-size: 22px; letter-spacing: 1px;
+}
+.tier-heading .th-rank-img { width: 22px; height: 22px; object-fit: contain; image-rendering: pixelated; }
+.tier-heading .th-name { flex: 1; }
+.tier-heading .th-pts { font-size: 16px; opacity: 0.8; }
+
+/* TASK GRID */
+.task-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  border: 1px solid; border-radius: 0 0 6px 6px; overflow: hidden;
+}
+
+.task-card {
+  background: var(--panel);
+  padding: 12px 8px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 7px; text-align: center;
+  min-height: 195px;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.task-card:hover { background: var(--panel2); }
+
+/* Icon area */
+.task-icons {
+  display: flex; flex-wrap: wrap;
+  justify-content: center; align-items: center;
+  gap: 3px;
+  width: 100%; flex-shrink: 0;
+  min-height: 52px;
+}
+/* Single icon — centered and larger */
+.task-icons.single {
+  justify-content: center; align-items: center;
+}
+.task-icons.single img { width: 52px; height: 52px; }
+/* Two icons */
+.task-icons.two img { width: 42px; height: 42px; }
+/* Three icons */
+.task-icons.three img { width: 36px; height: 36px; }
+/* Four icons: 2×2 grid */
+.task-icons.four {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  justify-items: center;
+  align-items: center;
+}
+.task-icons.four img { width: 38px; height: 38px; }
+/* Five icons: 3+2 */
+.task-icons.five { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; justify-items: center; align-items: center; }
+.task-icons.five img { width: 32px; height: 32px; }
+/* Six icons: 2×3 grid */
+.task-icons.six { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; justify-items: center; align-items: center; }
+.task-icons.six img { width: 32px; height: 32px; }
+/* More than 6: small wrap */
+.task-icons.many img { width: 26px; height: 26px; }
+
+.task-icons img {
+  object-fit: contain; image-rendering: pixelated;
+}
+
+.task-name {
+  font-size: 18px; color: var(--text); line-height: 1.3;
+  flex: 1; display: flex; align-items: flex-start; justify-content: center;
+  width: 100%; word-break: break-word; overflow-wrap: break-word;
+}
+
+/* Repeatable badge */
+.repeat-badge {
+  font-size: 14px; color: var(--text2); letter-spacing: 0.5px;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+  padding: 2px 7px;
+}
+
+.task-chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; width: 100%; }
+.chip {
+  font-size: 13px; padding: 3px 8px; border-radius: 10px;
+  border: 1px solid; line-height: 1.4; white-space: normal;
+  word-break: break-word; max-width: 100%;
+  transition: background 0.1s;
+}
+.chip.done { background: var(--green); border-color: #2a7a20; color: #fff; }
+.chip.undone { background: transparent; border-color: var(--border2); color: var(--text2); }
+.chip.hc { cursor: pointer; }
+.chip.hc.done:hover { filter: brightness(1.15); }
+.chip.hc.undone:hover { background: var(--panel2); color: var(--text); }
+/* Team badge indicators */
+.team-dots { display: flex; flex-direction: column; gap: 5px; align-items: stretch; margin-top: 6px; width: 100%; }
+.team-badge {
+  display: flex; align-items: center; gap: 6px;
+  border-radius: 6px; padding: 4px 8px;
+  font-size: 12px; font-weight: 600; cursor: default;
+  border-left: 4px solid; background: rgba(0,0,0,0.35);
+  transition: opacity 0.1s;
+}
+.team-badge.hc { cursor: pointer; }
+.team-badge.hc:hover { opacity: 0.8; }
+.team-badge.badge-undone { color: var(--text2); }
+.team-badge.badge-done { color: #fff; }
+.team-badge .badge-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.team-badge .badge-label { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.team-badge .badge-count {
+  font-size: 13px; font-weight: 800; min-width: 16px; text-align: right;
+}
+.team-badge .badge-check { font-size: 13px; }
+.rep-controls { display: flex; align-items: center; gap: 3px; }
+.rep-controls .cnt-btn { width: 20px; height: 20px; font-size: 14px; padding: 0; line-height: 1; flex-shrink: 0; }
+/* Repeatable: count chip */
+.chip-count {
+  font-size: 13px; padding: 3px 8px; border-radius: 10px;
+  border: 1px solid; line-height: 1.4; white-space: normal;
+  background: transparent; border-color: var(--border2); color: var(--text2);
+  display: flex; align-items: center; gap: 4px;
+  word-break: break-word; max-width: 100%;
+}
+.chip-count.has-completions { border-color: transparent !important; color: #fff !important; }
+.chip-count-row { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; }
+.chip-count-label { font-size: 13px; color: var(--text2); letter-spacing: 0.5px; word-break: break-word; max-width: 100%; }
+.chip-count-controls { display: flex; align-items: center; gap: 6px; }
+.cnt-btn {
+  cursor: pointer; border: none; border-radius: 6px;
+  font-family: inherit; font-weight: bold; font-size: 16px; line-height: 1;
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  transition: background 0.1s;
+}
+.cnt-minus { background: var(--red); color: #fff; }
+.cnt-minus:hover { filter: brightness(1.2); }
+.cnt-plus  { background: var(--green); color: #fff; }
+.cnt-plus:hover  { filter: brightness(1.2); }
+
+
+/* Add task card removed */
+
+/* LOG */
+#log-section { border-top: 1px solid var(--border); padding-top: 20px; margin-top: 8px; }
+#log-section h2 { color: var(--gold); font-size: 22px; letter-spacing: 1px; margin-bottom: 10px; }
+#log-list { list-style: none; }
+#log-list li { padding: 8px 0; border-bottom: 1px solid var(--panel2); font-size: 16px; color: var(--text2); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+#log-list li .log-text { color: var(--text); flex: 1; }
+.log-meta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.undo-btn { display: none; background: transparent; border: 1px solid var(--red); color: var(--red); padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; }
+.undo-btn.hs { display: inline-block; }
+.undo-btn:hover { background: var(--red); color: #fff; }
+
+/* MODALS */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--panel); border: 1px solid var(--border2); border-radius: 10px; padding: 24px; min-width: 300px; max-width: 92vw; }
+.modal h2 { color: var(--gold); font-size: 18px; margin-bottom: 16px; letter-spacing: 1px; }
+.modal input { width: 100%; background: var(--bg); border: 1px solid var(--border2); color: var(--text); padding: 9px 11px; border-radius: 5px; font-size: 14px; margin-bottom: 10px; }
+.modal input:focus { outline: none; border-color: var(--gold); }
+.modal-btns { display: flex; gap: 10px; margin-top: 6px; }
+.btn { padding: 9px 18px; border-radius: 5px; cursor: pointer; font-size: 14px; border: none; }
+.btn-gold { background: var(--gold2); color: #000; }
+.btn-gold:hover { background: var(--gold); }
+.btn-red { background: var(--red); color: #fff; }
+.btn-red:hover { filter: brightness(1.15); }
+.btn-gray { background: var(--panel2); color: var(--text); border: 1px solid var(--border2); }
+.btn-gray:hover { background: var(--bg2); }
+.err { color: #ff5555; font-size: 13px; margin-top: -6px; margin-bottom: 6px; display: none; }
+.err.show { display: block; }
+
+/* Tier header colors — matched to actual OSRS gem/rank icon colors */
+/* Opal: milky white-blue iridescent */
+.th-opal        { background:#0f1a1f; color:#c8e8f0; border-color:#3a6070; }
+/* Jade: muted olive green */
+.th-jade        { background:#0d1a0a; color:#7ab84a; border-color:#2a5018; }
+/* Red Topaz: warm orange-red */
+.th-topaz       { background:#200a00; color:#e85010; border-color:#602000; }
+/* Sapphire: vivid royal blue */
+.th-sapphire    { background:#040a22; color:#4878f0; border-color:#1030a0; }
+/* Emerald: rich green */
+.th-emerald     { background:#041a08; color:#20d050; border-color:#0a6020; }
+/* Ruby: deep red */
+.th-ruby        { background:#1e0204; color:#e81020; border-color:#780810; }
+/* Diamond: bright icy white-blue */
+.th-diamond     { background:#0e1418; color:#e0f0ff; border-color:#6090b0; }
+/* Dragon: fiery orange-red */
+.th-dragon      { background:#1e0600; color:#ff5500; border-color:#803000; }
+/* Dragonstone: dark teal-blue */
+.th-dragonstone { background:#040e18; color:#20b0c0; border-color:#106080; }
+/* TzKal: volcanic orange */
+.th-tzkal       { background:#1e0800; color:#ff7020; border-color:#903010; }
+/* Onyx: dark grey with silver sheen */
+.th-onyx        { background:#0a0a0a; color:#b0b8c0; border-color:#404850; }
+/* Kitten: hot pink */
+.th-kitten      { background:#1e0214; color:#f020a0; border-color:#800860; }
+/* Maxed: gold */
+.th-maxed       { background:#1a1400; color:#ffd700; border-color:#806800; }
+/* Completionism: bright orange */
+.th-completionism{background:#1e0800; color:#ff8800; border-color:#904000; }
+/* Zenyte: deep orange-red with golden tint */
+.th-zenyte      { background:#1e0400; color:#ff6020; border-color:#902010; }
+
+.gb-opal        { border-color:#3a6070; }
+.gb-jade        { border-color:#2a5018; }
+.gb-topaz       { border-color:#602000; }
+.gb-sapphire    { border-color:#1030a0; }
+.gb-emerald     { border-color:#0a6020; }
+.gb-ruby        { border-color:#780810; }
+.gb-diamond     { border-color:#6090b0; }
+.gb-dragon      { border-color:#803000; }
+.gb-dragonstone { border-color:#106080; }
+.gb-tzkal       { border-color:#903010; }
+.gb-onyx        { border-color:#404850; }
+.gb-kitten      { border-color:#800860; }
+.gb-maxed       { border-color:#806800; }
+.gb-completionism{border-color:#904000; }
+.gb-zenyte      { border-color:#902010; }
+
+@media (max-width: 960px) {
+  .main-layout { grid-template-columns: 160px 1fr; }
+  .side-player { font-size: 11px; }
+}
+@media (max-width: 700px) {
+  .main-layout {
+    display: flex; flex-direction: column;
+    padding: 0 8px 60px;
+  }
+  #rosters-panel {
+    position: static;
+    flex-direction: row; gap: 10px; flex-wrap: wrap;
+    justify-content: center; padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .side-roster { flex: 1; min-width: 130px; max-width: 200px; }
+  .center-col { width: 100%; min-width: 0; }
+  .task-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .task-card { min-height: 160px; }
+  .task-name { font-size: 13px; }
+  .tier-heading { font-size: 14px; }
+  .chip { font-size: 12px; padding: 2px 6px; }
+  .chip-count { font-size: 12px; padding: 2px 6px; }
+  .chip-count-label { font-size: 12px; }
+}
+@media (max-width: 480px) {
+  .task-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+  .task-card { min-height: 140px; }
+  .task-icons.single img { width: 38px; height: 38px; }
+  .task-icons.four img { width: 28px; height: 28px; }
+  .chip { font-size: 11px; padding: 2px 5px; }
+  .chip-count { font-size: 11px; padding: 2px 5px; }
+}
+
+/* Team colors */
+:root {
+  --team-0: #c03030;   /* red  */
+  --team-1: #2060c0;   /* blue */
+  --team-2: #20a050;   /* green */
+  --team-3: #b060d0;   /* purple */
+  --team-4: #d09020;   /* amber */
+  --team-0-bg: rgba(192,48,48,.18);
+  --team-1-bg: rgba(32,96,192,.18);
+  --team-2-bg: rgba(32,160,80,.18);
+  --team-3-bg: rgba(176,96,208,.18);
+  --team-4-bg: rgba(208,144,32,.18);
+  --both-bg: linear-gradient(135deg, rgba(192,48,48,.22) 50%, rgba(32,96,192,.22) 50%);
+}
+.team-color-0 { color: var(--team-0) !important; border-color: var(--team-0) !important; }
+.team-color-1 { color: var(--team-1) !important; border-color: var(--team-1) !important; }
+.team-color-2 { color: var(--team-2) !important; border-color: var(--team-2) !important; }
+.team-color-3 { color: var(--team-3) !important; border-color: var(--team-3) !important; }
+.team-color-4 { color: var(--team-4) !important; border-color: var(--team-4) !important; }
+.chip.done.team-color-0 { background: #a02828 !important; color: #fff !important; border-color: #a02828 !important; }
+.chip.done.team-color-1 { background: #1a52a8 !important; color: #fff !important; border-color: #1a52a8 !important; }
+.chip.done.team-color-2 { background: #1a8840 !important; color: #fff !important; border-color: #1a8840 !important; }
+.chip.done.team-color-3 { background: #9050b8 !important; color: #fff !important; border-color: #9050b8 !important; }
+.chip.done.team-color-4 { background: #b07818 !important; color: #fff !important; border-color: #b07818 !important; }
+.task-card.complete-0 { background: var(--team-0-bg); }
+.task-card.complete-1 { background: var(--team-1-bg); }
+.task-card.complete-2 { background: var(--team-2-bg); }
+.task-card.complete-3 { background: var(--team-3-bg); }
+.task-card.complete-4 { background: var(--team-4-bg); }
+.task-card.complete-both { background: var(--both-bg); }
+.cnt-btn { color: #fff !important; }
+
+</style>
+</head>
+<body>
+
+<div id="host-banner">⚔️ HOST MODE ACTIVE ⚔️ &nbsp;<button id="wipe-btn" onclick="wipeAll()" style="background:#8b0000;color:#fff;border:1px solid #ff4444;border-radius:6px;font-family:inherit;font-weight:bold;font-size:14px;padding:3px 10px;cursor:pointer;vertical-align:middle;">⚠️ Wipe All Data</button></div>
+<button id="host-btn">🔑 Host</button>
+
+<header>
+  <h1>🪜 Climbing the DROPped Ladder</h1>
+  <div class="dates">October 24 – November 14, 2026</div>
+</header>
+
+<div id="countdown-bar">
+  <div class="label">Bingo Begins In</div>
+  <div id="countdown-digits"></div>
+</div>
+
+<!-- TWO-COLUMN LAYOUT -->
+<div class="main-layout">
+  <!-- LEFT: All team rosters -->
+  <div id="rosters-panel"></div>
+
+  <!-- RIGHT: Scoreboard strip + Ladder + Log -->
+  <div class="center-col">
+    <div id="ladder">
+      <h2>⚔️ The Ladder</h2>
+    </div>
+
+    <div id="log-section">
+      <h2>📜 Completion Log</h2>
+      <ul id="log-list"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- AUTH -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal">
+    <h2>🔑 Host Login</h2>
+    <input type="password" id="auth-pass" placeholder="Password" />
+    <div class="err" id="auth-err">Incorrect password.</div>
+    <div class="modal-btns">
+      <button class="btn btn-gold" onclick="submitAuth()">Enter</button>
+      <button class="btn btn-gray" onclick="closeModal('auth-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- TEAM RENAME -->
+<div class="modal-overlay" id="team-modal">
+  <div class="modal">
+    <h2>✏️ Rename Team</h2>
+    <input type="text" id="team-name-input" placeholder="Team name" />
+    <div class="modal-btns">
+      <button class="btn btn-gold" onclick="submitTeamRename()">Save</button>
+      <button class="btn btn-gray" onclick="closeModal('team-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+<!-- ADD TEAM -->
+<div class="modal-overlay" id="addteam-modal">
+  <div class="modal">
+    <h2>➕ New Team</h2>
+    <input type="text" id="addteam-name-input" placeholder="Team name" />
+    <div class="modal-btns">
+      <button class="btn btn-gold" onclick="submitAddTeam()">Create</button>
+      <button class="btn btn-gray" onclick="closeModal('addteam-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://iicrezlhiskulxgmoyvx.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlpY3JlemxoaXNrdWx4Z21veXZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc1NDE4MzYsImV4cCI6MjA2MzExNzgzNn0.sb_publishable_EhZn76ph551WwdCMIdtfrg_Oj20JBDG';
+const PASSWORD_HASH = '8ea19e6b4a08b0f15e19fd84a93d4e1781e5a393b25ed444c0cd495e07b58118';
+const LS_KEY = 'ladder_bingo_v8';
+const TABLE  = 'ladder_bingo';
+const BINGO_START = new Date('2026-10-24T00:00:00-04:00');
+
+// ── TIER DEFINITIONS ───────────────────────────────────────────────────────
+// pts: points per completion. ptsLabel: shown in heading.
+const TIERS = [
+  { key:'opal',          name:'OPAL',          pts:1,  ptsLabel:'1 Point per task',  rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_Opal.png?f7cb3' },
+  { key:'jade',          name:'JADE',          pts:2,  ptsLabel:'2 Points per task', rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_Jade.png' },
+  { key:'topaz',         name:'TOPAZ',         pts:3,  ptsLabel:'3 Points per task', rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_Red_Topaz.png' },
+  { key:'sapphire',      name:'SAPPHIRE',      pts:4,  ptsLabel:'4 Points per task', rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_Sapphire.png' },
+  { key:'emerald',       name:'EMERALD',       pts:5,  ptsLabel:'5 Points per task', rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_Emerald.png' },
+  { key:'ruby',          name:'RUBY',          pts:6,  ptsLabel:'6 Points per task', rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_Ruby.png' },
+  { key:'diamond',       name:'DIAMOND',       pts:7,  ptsLabel:'7 Points per task', rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_Diamond.png' },
+  { key:'dragon',        name:'DRAGON',        pts:8,  ptsLabel:'8 Points per task', rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_Dragon.png' },
+  { key:'dragonstone',   name:'DRAGONSTONE',   pts:9,  ptsLabel:'9 Points per task', rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_Dragonstone.png' },
+  { key:'tzkal',         name:'TzKal',         pts:10, ptsLabel:'10 Points per task',rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_TzKal.png' },
+  { key:'onyx',          name:'ONYX',          pts:11, ptsLabel:'11 Points per task',rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_Onyx.png' },
+  { key:'kitten',        name:'KITTEN',        pts:12, ptsLabel:'12 Points per task',rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_Kitten.png' },
+  { key:'maxed',         name:'MAXED',         pts:13, ptsLabel:'13 Points per task',rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_Maxed.png' },
+  { key:'completionism', name:'COMPLETIONISM', pts:20, ptsLabel:'20 Points per task',rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_Completionist.png' },
+  { key:'zenyte',        name:'ZENYTE',        pts:25, ptsLabel:'25 Points per task',rankImg:'https://oldschool.runescape.wiki/images/Clan_icon_-_Zenyte.png' },
+];
+
+// ── TASK DATA ─────────────────────────────────────────────────────────────
+// repeatable: true = teams can earn points multiple times for this task
+// completions tracked per team as a count (for repeatable) or bool (for non-repeatable)
+const DEFAULT_TASKS = {
+  opal: [
+    { id:'opal_0', name:'Hill Giant Club',       repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Hill_giant_club.png'] },
+    { id:'opal_1', name:'Granite Gloves',        repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Granite_gloves.png'] },
+    { id:'opal_2', name:'Scurrius Spine',        repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Scurrius\'_spine.png'] },
+    { id:'opal_3', name:'Warped Sceptre',        repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Warped_sceptre.png'] },
+    { id:'opal_4', name:'Zombie Axe',            repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Zombie_axe.png'] },
+    { id:'opal_5', name:"Bryophyta's Essence",   repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Bryophyta\'s_essence.png'] },
+    { id:'opal_6', name:'Necklace of Fangs',     repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Necklace_of_Fangs.png?d0fe3'] },
+    { id:'opal_7', name:'Elemental Amulet',      repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Elemental_amulet.png?ea022'] },
+  ],
+  jade: [
+    { id:'jade_0', name:'Twinflame Staff',       repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Twinflame_staff.png?12e98'] },
+    { id:'jade_1', name:'Seercull',              repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Seercull.png'] },
+    { id:'jade_2', name:'Huey Hide',             repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Hueycoatl_hide.png'] },
+    { id:'jade_3', name:'Granite Hammer',        repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Granite_hammer.png'] },
+    { id:'jade_4', name:'Black Mask',            repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Black_mask.png'] },
+    { id:'jade_5', name:'Berserker Ring',        repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Berserker_ring.png'] },
+    { id:'jade_6', name:'Hallowfell',            repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Hallowfell.png?09f8f'] },
+    { id:'jade_7', name:'Tome of Water',         repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Tome_of_Water.png?04f28'] },
+    { id:'jade_8', name:'Tome of Earth',         repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Tome_of_Earth.png?942fb'] },
+    { id:'jade_9', name:'Tome of Fire',          repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Tome_of_Fire.png?c9227'] },
+  ],
+  topaz: [
+    { id:'topaz_0', name:'Mystic Vigour Prayer', repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Mystic_vigour_prayer_scroll.png'] },
+    { id:'topaz_1', name:'Deadeye Prayer',       repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Deadeye_prayer_scroll.png'] },
+    { id:'topaz_2', name:'Dragon Pickaxe',       repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Dragon_pickaxe.png'] },
+    { id:'topaz_3', name:'Sarachnis Cudgel',     repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Sarachnis_cudgel.png'] },
+    { id:'topaz_4', name:'Dragon 2H Sword',      repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Dragon_2h_sword.png'] },
+    { id:'topaz_5', name:'Zombie Helmet',        repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Zombie_helmet.png'] },
+    { id:'topaz_6', name:'Antler Guard',         repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Antler_guard.png?dfef1'] },
+  ],
+  sapphire: [
+    { id:'sap_0', name:'Blue Moon Armour Set',   repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Blue_Moon_helm.png?07650','https://oldschool.runescape.wiki/images/Blue_Moon_chestplate.png?07650','https://oldschool.runescape.wiki/images/Blue_Moon_tassets.png?07650','https://oldschool.runescape.wiki/images/Blue_Moon_spear.png?c58ef'] },
+    { id:'sap_1', name:'Blood Moon Armour Set',  repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Blood_Moon_helm.png?07650','https://oldschool.runescape.wiki/images/Blood_Moon_chestplate.png?e1669','https://oldschool.runescape.wiki/images/Blood_Moon_tassets.png?07650','https://oldschool.runescape.wiki/images/Dual_macuahuitl.png?77621'] },
+    { id:'sap_2', name:'Eclipse Moon Armour Set',repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Eclipse_Moon_helm.png?e15fe','https://oldschool.runescape.wiki/images/Eclipse_Moon_chestplate.png?e15fe','https://oldschool.runescape.wiki/images/Eclipse_Moon_tassets.png?e15fe','https://oldschool.runescape.wiki/images/Eclipse_atlatl.png?77621'] },
+    { id:'sap_3', name:'Serpentine Visage',      repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Serpentine_visage.png'] },
+    { id:'sap_4', name:'Tanzanite Fang',         repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Tanzanite_fang.png'] },
+    { id:'sap_5', name:'Magic Fang',             repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Magic_fang.png'] },
+    { id:'sap_6', name:'Uncut Onyx',             repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Uncut_onyx.png'] },
+    { id:'sap_7', name:'Trident of the Seas',    repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Trident_of_the_Seas_%28full%29.png?03aa0'] },
+    { id:'sap_8', name:'Abyssal Whip',           repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Abyssal_whip.png'] },
+    { id:'sap_9', name:'Kraken Tentacle',        repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Kraken_tentacle.png?af6ab'] },
+  ],
+  emerald: [
+    { id:'em_0', name:'Occult Necklace',              repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Occult_necklace.png'] },
+    { id:'em_1', name:'Primordial Crystal',           repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Primordial_crystal.png'] },
+    { id:'em_2', name:'4x Zenyte Shard',                 repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Zenyte_shard.png?8abb8','https://oldschool.runescape.wiki/images/Zenyte_shard.png?8abb8','https://oldschool.runescape.wiki/images/Zenyte_shard.png?8abb8','https://oldschool.runescape.wiki/images/Zenyte_shard.png?8abb8'] },
+    { id:'em_3', name:'Enhanced Crystal Weapon Seed', repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Enhanced_crystal_weapon_seed.png?b8cf0'] },
+    { id:'em_4', name:'Crystal Armour Seed',          repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Crystal_armour_seed.png?ec18f'] },
+    { id:'em_5', name:'Dragon Warhammer',             repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Dragon_warhammer.png'] },
+    { id:'em_6', name:'Dagannoth Rings (all 4)',      repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Berserker_ring.png?3be33','https://oldschool.runescape.wiki/images/Warrior_ring.png?75a26','https://oldschool.runescape.wiki/images/Seers_ring.png?4b960','https://oldschool.runescape.wiki/images/Archers_ring.png?c0a17'] },
+    { id:'em_7', name:'Bludgeon Spine',               repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Bludgeon_spine.png'] },
+    { id:'em_8', name:'Bludgeon Claw',                repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Bludgeon_claw.png'] },
+    { id:'em_9', name:'Bludgeon Axon',                repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Bludgeon_axon.png'] },
+    { id:'em_10', name:'Abyssal Dagger',              repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Abyssal_dagger.png'] },
+  ],
+  ruby: [
+    { id:'ruby_0', name:'Arcane Prayer Scroll',   repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Arcane_prayer_scroll.png'] },
+    { id:'ruby_1', name:'Dexterous Prayer Scroll', repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Dexterous_prayer_scroll.png'] },
+    { id:'ruby_2', name:"Osmumten's Fang",         repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Osmumten\'s_fang.png'] },
+    { id:'ruby_3', name:'2x Tormented Synapse',       repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Tormented_synapse.png','https://oldschool.runescape.wiki/images/Tormented_synapse.png'] },
+    { id:'ruby_4', name:'Burning Claws',           repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Burning_claws.png'] },
+    { id:'ruby_5', name:'Bandos Hilt',             repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Bandos_hilt.png'] },
+    { id:'ruby_6', name:'Zamorak Hilt',            repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Zamorak_hilt.png'] },
+    { id:'ruby_7', name:'Saradomin Hilt',          repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Saradomin_hilt.png'] },
+    { id:'ruby_8', name:'Armadyl Hilt',            repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Armadyl_hilt.png'] },
+  ],
+  diamond: [
+    { id:'dia_0', name:'Any CoX Unique (excl. T-Bow & Scrolls)', repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Twisted_buckler.png?5c5a6','https://oldschool.runescape.wiki/images/Dragon_hunter_crossbow.png?cc5f3','https://oldschool.runescape.wiki/images/Ancestral_hat.png?ec289','https://oldschool.runescape.wiki/images/Ancestral_robe_top.png?8d9e1','https://oldschool.runescape.wiki/images/Ancestral_robe_bottom.png?15de7','https://oldschool.runescape.wiki/images/Dinh%27s_bulwark.png?2c9d4','https://oldschool.runescape.wiki/images/Dragon_claws.png?c85b3','https://oldschool.runescape.wiki/images/Elder_maul.png?0a875','https://oldschool.runescape.wiki/images/Kodai_insignia.png?ec129'] },
+    { id:'dia_1', name:'ToA Unique (excl. Shadow)',                repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Osmumten%27s_fang.png?8bfab','https://oldschool.runescape.wiki/images/Lightbearer.png?6da96','https://oldschool.runescape.wiki/images/Elidinis%27_ward.png?a2353','https://oldschool.runescape.wiki/images/Masori_mask.png?44891','https://oldschool.runescape.wiki/images/Masori_body.png?44891','https://oldschool.runescape.wiki/images/Masori_chaps.png?44891'] },
+    { id:'dia_2', name:'Masori Crafting Kit',                      repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Masori_crafting_kit.png?5790e'] },
+    { id:'dia_3', name:'Soulflame Horn',                           repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Soulflame_horn.png'] },
+    { id:'dia_4', name:'Avernic Defender',                         repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Avernic_defender.png'] },
+    { id:'dia_5', name:'Dragon Hunter Wand',                       repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Dragon_hunter_wand.png'] },
+  ],
+  dragon: [
+    { id:'drag_0', name:'Full Ballista',      repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Light_ballista.png?a6990','https://oldschool.runescape.wiki/images/Heavy_ballista.png?bfea5'] },
+    { id:'drag_1', name:'Venator Bow',        repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Venator_bow.png'] },
+    { id:'drag_2', name:'Pegasian Crystal',   repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Pegasian_crystal.png'] },
+    { id:'drag_3', name:'Eternal Crystal',    repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Eternal_crystal.png'] },
+    { id:'drag_4', name:"Hydra's Claw",       repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Hydra%27s_claw.png?7331d'] },
+    { id:'drag_5', name:'Hydra Leather',      repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Hydra_leather.png?7331d'] },
+  ],
+  dragonstone: [
+    { id:'ds_0', name:'Araxyte Fang',        repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Araxyte_fang.png?b5a13'] },
+    { id:'ds_1', name:'Crimson Kisten',      repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Crimson_kisten.png?36559'] },
+    { id:'ds_2', name:'Elder Venator Fang',  repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Elder_venator_fang.png?aa5ad'] },
+    { id:'ds_3', name:'Completed Voidwaker', repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Voidwaker_blade.png?26d89','https://oldschool.runescape.wiki/images/Voidwaker_hilt.png?dd2ac','https://oldschool.runescape.wiki/images/Voidwaker_gem.png?dd2ac'] },
+    { id:'ds_4', name:'Elder Maul',          repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Elder_maul.png?0a875'] },
+    { id:'ds_5', name:'Kodai Insignia',      repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Kodai_insignia.png?ec129'] },
+  ],
+  tzkal: [
+    { id:'tzk_0', name:'Inferno Cape',              repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Infernal_cape.png'] },
+    { id:'tzk_1', name:"Dizana's Quiver",           repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Dizana\'s_quiver.png'] },
+    { id:'tzk_2', name:'Any DT2 Vestige',           repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Ultor_vestige.png?9ca39','https://oldschool.runescape.wiki/images/Bellator_vestige.png?a5c3b','https://oldschool.runescape.wiki/images/Magus_vestige.png?7f747','https://oldschool.runescape.wiki/images/Venator_vestige.png?9ca39'] },
+    { id:'tzk_3', name:'Any Virtus Piece',          repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Virtus_mask.png?3a5cd','https://oldschool.runescape.wiki/images/Virtus_robe_top.png?3a5cd','https://oldschool.runescape.wiki/images/Virtus_robe_bottom.png?9604a'] },
+    { id:'tzk_4', name:'Soulreaper Axe (all pieces)',repeatable:true, imgs:['https://oldschool.runescape.wiki/images/Leviathan%27s_lure.png?7f747','https://oldschool.runescape.wiki/images/Siren%27s_staff.png?7f747','https://oldschool.runescape.wiki/images/Executioner%27s_axe_head.png?7f747','https://oldschool.runescape.wiki/images/Eye_of_the_Duke.png?7f747'] },
+  ],
+  onyx: [
+    { id:'onyx_0', name:"Blessed Dizana's Quiver (150k Team Splinters + Quiver)", repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Blessed_Dizana%27s_quiver.png?d1dee'] },
+    { id:'onyx_1', name:'ToB Unique (excl. Scythe)',      repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Avernic_defender_hilt.png?2baad','https://oldschool.runescape.wiki/images/Justiciar_faceguard.png?fb842','https://oldschool.runescape.wiki/images/Justiciar_chestguard.png?fb842','https://oldschool.runescape.wiki/images/Justiciar_legguards.png?cff7a','https://oldschool.runescape.wiki/images/Ghrazi_rapier.png?d2266','https://oldschool.runescape.wiki/images/Sanguinesti_staff.png?dcaa9'] },
+    { id:'onyx_2', name:'Nex Unique',                     repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Zaryte_vambraces.png?5828d','https://oldschool.runescape.wiki/images/Nihil_horn.png?f4677','https://oldschool.runescape.wiki/images/Torva_full_helm_%28damaged%29.png?e82f5','https://oldschool.runescape.wiki/images/Torva_platebody_%28damaged%29.png?e82f5','https://oldschool.runescape.wiki/images/Torva_platelegs_%28damaged%29.png?e82f5','https://oldschool.runescape.wiki/images/Ancient_hilt.png?ab0b0','https://oldschool.runescape.wiki/images/Nexling.png?23e0d'] },
+    { id:'onyx_3', name:'Doom Unique',                    repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Mokhaiotl_cloth.png?ca973','https://oldschool.runescape.wiki/images/Eye_of_Ayak.png?bf437','https://oldschool.runescape.wiki/images/Avernic_treads.png?fba52','https://oldschool.runescape.wiki/images/Dom.png?aa496'] },
+    { id:'onyx_4', name:'Nightmare Unique (excl. orbs)', repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Nightmare_staff.png?1bf3c','https://oldschool.runescape.wiki/images/Inquisitor%27s_great_helm.png?e75c0','https://oldschool.runescape.wiki/images/Inquisitor%27s_hauberk.png?19317','https://oldschool.runescape.wiki/images/Inquisitor%27s_plateskirt.png?19317','https://oldschool.runescape.wiki/images/Inquisitor%27s_mace.png?13f14','https://oldschool.runescape.wiki/images/Little_Nightmare.png?f3f6a'] },
+  ],
+  kitten: [
+    { id:'kit_0', name:'Nightmare Orb (any)',   repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Eldritch_orb.png?7a7c0','https://oldschool.runescape.wiki/images/Harmonised_orb.png?bfea5','https://oldschool.runescape.wiki/images/Volatile_orb.png?a7de8'] },
+    { id:'kit_1', name:'Tonalztics of Ralos',   repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Tonalztics_of_Ralos.png?942fb'] },
+  ],
+  maxed: [
+    { id:'max_0', name:'Twisted Bow',             repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Twisted_bow.png?08f42'] },
+    { id:'max_1', name:'Scythe of Vitur',         repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Scythe_of_Vitur.png?c943f'] },
+    { id:'max_2', name:"Tumeken's Shadow",        repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Tumeken%27s_shadow.png?3169b'] },
+    { id:'max_3', name:'Full Ancestral Set',      repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Ancestral_hat.png?ec289','https://oldschool.runescape.wiki/images/Ancestral_robe_top.png?8d9e1','https://oldschool.runescape.wiki/images/Ancestral_robe_bottom.png?15de7'] },
+    { id:'max_4', name:'Fortified Masori Set',    repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Masori_mask_%28f%29.png?44891','https://oldschool.runescape.wiki/images/Masori_body_%28f%29.png?6da96','https://oldschool.runescape.wiki/images/Masori_chaps_%28f%29.png?6da96'] },
+    { id:'max_5', name:'Oathplate Set (full)',    repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Oathplate_helm.png?e3d92','https://oldschool.runescape.wiki/images/Oathplate_chest.png?e3d92','https://oldschool.runescape.wiki/images/Oathplate_legs.png?045b8'] },
+    { id:'max_6', name:'Torva Set (full)',        repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Torva_full_helm.png?96920','https://oldschool.runescape.wiki/images/Torva_platebody.png?9d2f1','https://oldschool.runescape.wiki/images/Torva_platelegs.png?e82f5'] },
+    { id:'max_7', name:'Maxed Avernic Treads',   repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Avernic_treads.png?fba52','https://oldschool.runescape.wiki/images/Primordial_boots.png?e2ec4','https://oldschool.runescape.wiki/images/Pegasian_boots.png?97482','https://oldschool.runescape.wiki/images/Eternal_boots.png?b8cf0'] },
+  ],
+  completionism: [
+    { id:'comp_0', name:'Metamorphic Dust',           repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Metamorphic_dust.png'] },
+    { id:'comp_1', name:'Sanguine Dust',              repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Sanguine_dust.png?7313d'] },
+    { id:'comp_2', name:'Sanguine Kit',               repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Sanguine_ornament_kit.png'] },
+    { id:'comp_3', name:'Holy Kit',                   repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Holy_ornament_kit.png'] },
+    { id:'comp_4', name:'All ToA Challenge Rewards',  repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Cursed_phalanx.png?5790e'] },
+    { id:'comp_5', name:'Imbued Heart',               repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Imbued_heart.png?19317'] },
+    { id:'comp_6', name:'Araxxor Green Log',          repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Nid.png?b5a13'] },
+    { id:'comp_7', name:'Twisted Ancestral Colour Kit', repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Twisted_ancestral_colour_kit.png'] },
+  ],
+  zenyte: [
+    { id:'zen_0', name:'All Raids Green Logged',      repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Olmlet.png?d8722','https://oldschool.runescape.wiki/images/Tumeken%27s_guardian.png?5790e','https://oldschool.runescape.wiki/images/Lil%27_Zik.png?c62f1'] },
+    { id:'zen_1', name:'Dragon Full Helm (DFH)',      repeatable:true,  imgs:['https://oldschool.runescape.wiki/images/Dragon_full_helm.png'] },
+    { id:'zen_2', name:'Any Corp Sigil',              repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Spectral_sigil.png?ca31d','https://oldschool.runescape.wiki/images/Arcane_sigil.png?1f712','https://oldschool.runescape.wiki/images/Elysian_sigil.png?1bc1e'] },
+    { id:'zen_3', name:'Earth Warrior Champion Scroll',repeatable:false,imgs:['https://oldschool.runescape.wiki/images/Earth_warrior_champion_scroll.png'] },
+    { id:'zen_4', name:'Ghoul Champion Scroll',       repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Ghoul_champion_scroll.png'] },
+    { id:'zen_5', name:'Giant Champion Scroll',       repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Giant_champion_scroll.png'] },
+    { id:'zen_6', name:'Goblin Champion Scroll',      repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Goblin_champion_scroll.png'] },
+    { id:'zen_7', name:'Hobgoblin Champion Scroll',   repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Hobgoblin_champion_scroll.png'] },
+    { id:'zen_8', name:'Imp Champion Scroll',         repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Imp_champion_scroll.png'] },
+    { id:'zen_9', name:'Jogre Champion Scroll',       repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Jogre_champion_scroll.png'] },
+    { id:'zen_10', name:'Lesser Demon Champion Scroll',repeatable:false,imgs:['https://oldschool.runescape.wiki/images/Lesser_demon_champion_scroll.png'] },
+    { id:'zen_11', name:'Skeleton Champion Scroll',   repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Skeleton_champion_scroll.png'] },
+    { id:'zen_12', name:'Zombie Champion Scroll',     repeatable:false, imgs:['https://oldschool.runescape.wiki/images/Zombie_champion_scroll.png'] },
+  ],
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+// completions: { taskId: { teamId: count (repeatable) | bool (non-repeatable) } }
+const DEFAULT_STATE = {
+  teams: [
+    { id:'team_a', name:'Team Alpha', roster:[] },
+    { id:'team_b', name:'Team Bravo', roster:[] },
+  ],
+  tasks: DEFAULT_TASKS,
+  completions: {},
+  log: [],
+};
+
+let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+let hostMode = false;
+let editingTaskId = null;
+let editingTaskTier = null;
+let renamingTeamId = null;
+let supabase = null;
+
+// ── SUPABASE ──────────────────────────────────────────────────────────────
+function initSupabase() {
+  try {
+    if (window.supabase && window.supabase.createClient) {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    }
+  } catch(e) {}
+}
+
+async function loadFromSupabase() {
+  if (!supabase) return false;
+  try {
+    const { data, error } = await supabase.from(TABLE).select('state').eq('id',1).single();
+    if (error || !data) return false;
+    state = data.state;
+    return true;
+  } catch(e) { return false; }
+}
+
+async function saveToSupabase() {
+  if (!supabase) return;
+  try {
+    await supabase.from(TABLE).upsert({ id:1, state, updated_at: new Date().toISOString() });
+  } catch(e) {}
+}
+
+function subscribeRealtime() {
+  if (!supabase) return;
+  supabase.channel('ladder_changes')
+    .on('postgres_changes', { event:'UPDATE', schema:'public', table:TABLE }, payload => {
+      if (payload.new && payload.new.state) {
+        state = payload.new.state;
+        renderAll();
+      }
+    })
+    .subscribe();
+}
+
+// ── PERSISTENCE ───────────────────────────────────────────────────────────
+
+function wipeAll() {
+  if (!confirm('Reset ALL scores, completions, and logs to default? This cannot be undone.')) return;
+  state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  state.tasks = {};
+  for (const [k, arr] of Object.entries(DEFAULT_TASKS)) {
+    state.tasks[k] = arr.map(t => ({...t}));
+  }
+  localStorage.removeItem(LS_KEY);
+  saveState();
+  renderAll();
+  addLog('🗑️ Host wiped all data — fresh start!');
+}
+
+function saveState() {
+  try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e) {}
+  saveToSupabase();
+}
+function loadState() {
+  try {
+    const s = localStorage.getItem(LS_KEY);
+    if (s) {
+      const saved = JSON.parse(s);
+      // Always use DEFAULT_TASKS as the base; merge in any host-added custom tasks
+      state = { ...DEFAULT_STATE, ...saved, tasks: DEFAULT_TASKS };
+      // Merge any custom tasks the host added that aren't in defaults
+      for (const [k, arr] of Object.entries(saved.tasks || {})) {
+        const defaultIds = new Set((DEFAULT_TASKS[k]||[]).map(t=>t.id));
+        const extras = arr.filter(t => !defaultIds.has(t.id));
+        if (extras.length) state.tasks[k] = [...(DEFAULT_TASKS[k]||[]), ...extras];
+      }
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+// ── POINTS ────────────────────────────────────────────────────────────────
+function getTierPts(tierKey) {
+  return (TIERS.find(t => t.key === tierKey) || {pts:0}).pts;
+}
+function getTaskTier(taskId) {
+  for (const [tk, tasks] of Object.entries(state.tasks)) {
+    if (tasks.find(t => t.id === taskId)) return tk;
+  }
+  return null;
+}
+function calcPoints(teamId) {
+  let pts = 0;
+  for (const [taskId, tmap] of Object.entries(state.completions)) {
+    const val = tmap[teamId];
+    if (!val) continue;
+    const tierKey = getTaskTier(taskId);
+    if (!tierKey) continue;
+    const tierPts = getTierPts(tierKey);
+    // find task
+    const task = (state.tasks[tierKey] || []).find(t => t.id === taskId);
+    if (!task) continue;
+    if (task.repeatable) {
+      const count = typeof val === 'number' ? val : 0;
+      if (count > 0) pts += tierPts + (count - 1) * (tierPts / 2); // first = full, each after = half
+    } else {
+      pts += val ? tierPts : 0;
+    }
+  }
+  return pts;
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────
+async function hashPassword(pw) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+async function submitAuth() {
+  const pw = document.getElementById('auth-pass').value;
+  const h = await hashPassword(pw);
+  if (h === PASSWORD_HASH) {
+    hostMode = true;
+    document.getElementById('host-banner').classList.add('active');
+    document.getElementById('host-btn').textContent = '🔒 Exit Host';
+    closeModal('auth-modal');
+    renderAll();
+  } else {
+    document.getElementById('auth-err').classList.add('show');
+  }
+}
+
+// ── MODAL HELPERS ─────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open')); });
+
+// ── HOST BUTTON ───────────────────────────────────────────────────────────
+document.getElementById('host-btn').onclick = () => {
+  if (hostMode) {
+    hostMode = false;
+    document.getElementById('host-banner').classList.remove('active');
+    document.getElementById('host-btn').textContent = '🔑 Host';
+    renderAll();
+  } else {
+    document.getElementById('auth-pass').value = '';
+    document.getElementById('auth-err').classList.remove('show');
+    openModal('auth-modal');
+  }
+};
+document.getElementById('auth-pass').addEventListener('keydown', e => { if (e.key==='Enter') submitAuth(); });
+
+// ── TEAM MANAGEMENT ───────────────────────────────────────────────────────
+function openRenameTeam(teamId) {
+  renamingTeamId = teamId;
+  const t = state.teams.find(t=>t.id===teamId);
+  document.getElementById('team-name-input').value = t ? t.name : '';
+  openModal('team-modal');
+}
+function submitTeamRename() {
+  const n = document.getElementById('team-name-input').value.trim();
+  if (!n) return;
+  const t = state.teams.find(t=>t.id===renamingTeamId);
+  if (t) { t.name = n; saveState(); renderAll(); }
+  closeModal('team-modal');
+}
+function addPlayer(teamId, name) {
+  const t = state.teams.find(t=>t.id===teamId);
+  if (!t || !name.trim()) return;
+  if (!t.roster) t.roster = [];
+  t.roster.push(name.trim());
+  saveState(); renderAll();
+}
+function removePlayer(teamId, idx) {
+  const t = state.teams.find(t=>t.id===teamId);
+  if (!t || !t.roster) return;
+  t.roster.splice(idx, 1);
+  saveState(); renderAll();
+}
+function submitAddTeam() {
+  const n = document.getElementById('addteam-name-input').value.trim();
+  if (!n) return;
+  state.teams.push({ id:'team_'+Date.now(), name:n, roster:[] });
+  saveState(); renderAll();
+  closeModal('addteam-modal');
+}
+function removeTeam(teamId) {
+  const t = state.teams.find(t=>t.id===teamId);
+  if (!t) return;
+  if (!confirm(`Remove team "${t.name}" and all their completions? This cannot be undone.`)) return;
+  state.teams = state.teams.filter(t=>t.id!==teamId);
+  for (const taskId of Object.keys(state.completions)) {
+    if (state.completions[taskId]) delete state.completions[taskId][teamId];
+  }
+  saveState(); renderAll();
+  addLog(`🗑️ Team "${t.name}" removed by host.`);
+}
+
+// ── COMPLETION ────────────────────────────────────────────────────────────
+function toggleCompletion(taskId, teamId) {
+  if (!state.completions[taskId]) state.completions[taskId] = {};
+  const tierKey = getTaskTier(taskId);
+  const task = (state.tasks[tierKey]||[]).find(t=>t.id===taskId);
+  if (!task) return;
+  const team = state.teams.find(t=>t.id===teamId);
+  const teamName = team ? team.name : teamId;
+
+  if (task.repeatable) {
+    return; // repeatable handled by addRepeatableCompletion / removeRepeatableCompletion
+  } else {
+    const cur = !!state.completions[taskId][teamId];
+    state.completions[taskId][teamId] = !cur;
+    const pts = getTierPts(tierKey);
+    addLog(state.completions[taskId][teamId]
+      ? `✅ ${teamName} completed "${task.name}" (+${pts} pts)`
+      : `↩️ ${teamName} undid "${task.name}" (-${pts} pts)`);
+  }
+  saveState(); renderAll();
+}
+
+function addRepeatableCompletion(taskId, teamId) {
+  if (!hostMode) return;
+  if (!state.completions[taskId]) state.completions[taskId] = {};
+  const tierKey = getTaskTier(taskId);
+  const task = (state.tasks[tierKey]||[]).find(t=>t.id===taskId);
+  if (!task || !task.repeatable) return;
+  const cur = state.completions[taskId][teamId] || 0;
+  state.completions[taskId][teamId] = cur + 1;
+  const fullPts = getTierPts(tierKey);
+  const earnedPts = cur === 0 ? fullPts : fullPts / 2;
+  const team = state.teams.find(t=>t.id===teamId);
+  const teamName = team ? team.name : teamId;
+  addLog(`✅ ${teamName} completed "${task.name}" x${cur+1} (+${earnedPts} pts${cur > 0 ? ' ½' : ''})`);
+  saveState(); renderAll();
+}
+
+function removeRepeatableCompletion(taskId, teamId) {
+  if (!hostMode) return;
+  if (!state.completions[taskId]) return;
+  const tierKey = getTaskTier(taskId);
+  const task = (state.tasks[tierKey]||[]).find(t=>t.id===taskId);
+  if (!task || !task.repeatable) return;
+  const cur = state.completions[taskId][teamId] || 0;
+  if (cur <= 0) return;
+  state.completions[taskId][teamId] = cur - 1;
+  const fullPts = getTierPts(tierKey);
+  const removedPts = cur === 1 ? fullPts : fullPts / 2;
+  const team = state.teams.find(t=>t.id===teamId);
+  const teamName = team ? team.name : teamId;
+  addLog(`↩️ ${teamName} undid "${task.name}" (−${removedPts} pts)`);
+  saveState(); renderAll();
+}
+
+function addLog(text) {
+  state.log.unshift({ id: Date.now()+'_'+Math.random(), ts: Date.now(), text });
+  if (state.log.length > 100) state.log.length = 100;
+}
+
+// ── COUNTDOWN ─────────────────────────────────────────────────────────────
+function updateCountdown() {
+  const el = document.getElementById('countdown-digits');
+  const now = new Date();
+  const diff = BINGO_START - now;
+  if (diff <= 0) {
+    el.innerHTML = '<span class="started-msg">🔥 BINGO IS LIVE! 🔥</span>';
+    return;
+  }
+  const d = Math.floor(diff/86400000);
+  const h = Math.floor((diff%86400000)/3600000);
+  const m = Math.floor((diff%3600000)/60000);
+  const s = Math.floor((diff%60000)/1000);
+  el.innerHTML = [
+    ['Days',d],['Hours',h],['Mins',m],['Secs',s]
+  ].map(([l,v])=>`<div class="cd-unit"><span class="cd-num">${String(v).padStart(2,'0')}</span><div class="cd-label">${l}</div></div>`).join('');
+}
+setInterval(updateCountdown, 1000);
+updateCountdown();
+
+// ── ICON CLASS ────────────────────────────────────────────────────────────
+function iconClass(n) {
+  if (n===1) return 'single';
+  if (n===2) return 'two';
+  if (n===3) return 'three';
+  if (n===4) return 'four';
+  if (n===5) return 'five';
+  if (n===6) return 'six';
+  return 'many';
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function renderAll() {
+  renderSideRosters();
+  renderLadder();
+  renderLog();
+}
+
+function renderSideRosters() {
+  const panel = document.getElementById('rosters-panel');
+  if (!panel) return;
+  const hs = hostMode ? 'hs' : '';
+  const medals = ['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'];
+  // Sort teams by points descending, keep original idx for color
+  const teamsWithIdx = state.teams.map((team, idx) => ({ team, idx }));
+  teamsWithIdx.sort((a, b) => calcPoints(b.team.id) - calcPoints(a.team.id));
+  // Remember which bodies are open
+  const openBodies = new Set();
+  panel.querySelectorAll('.roster-body.open').forEach(el => openBodies.add(el.dataset.teamId));
+  let html = '';
+  teamsWithIdx.forEach(({ team, idx }, rank) => {
+    const pts = calcPoints(team.id);
+    const teamColor = `var(--team-${idx}, var(--gold))`;
+    const medal = medals[rank] || `${rank+1}.`;
+    const isOpen = openBodies.has(team.id);
+    let playersHtml = (team.roster||[]).map((p,i)=>`
+      <div class="side-player">
+        <span>${p}</span>
+        <span class="remove-player ${hs}" onclick="removePlayer('${team.id}',${i})" title="Remove">×</span>
+      </div>`).join('');
+    const solidColors = ['#a02828','#1a52a8','#1a8840','#9050b8','#b07818'];
+    const solidColor = solidColors[idx] || '#555';
+    html += `<div class="side-roster" style="border-color:${solidColor};background:rgba(0,0,0,.25)">
+      <div class="roster-header" onclick="toggleRoster('${team.id}')">
+        <span class="roster-rank">${medal}</span>
+        <span class="roster-name" style="color:${teamColor}">${team.name}</span>
+        <span class="roster-pts-badge">${pts} pts</span>
+        <span class="roster-toggle ${isOpen?'open':''}">▼</span>
+      </div>
+      <div class="roster-body ${isOpen?'open':''}" data-team-id="${team.id}">
+        <div style="display:flex;gap:6px;margin-bottom:6px">
+          <button class="rename-team-btn ${hs}" style="margin-bottom:0;flex:1" onclick="openRenameTeam('${team.id}')">rename</button>
+          <button class="rename-team-btn ${hs}" style="margin-bottom:0;flex:1;color:#e05050" onclick="removeTeam('${team.id}')">remove</button>
+        </div>
+        <div class="side-players-label">Roster</div>
+        ${playersHtml || '<div style="font-size:13px;color:var(--text2);text-align:center;padding:4px 0">No players yet</div>'}
+        <div class="add-player-row ${hs}" id="add-row-${team.id}">
+          <input type="text" placeholder="IGN" id="add-input-${team.id}" />
+          <button onclick="doAddPlayer('${team.id}')">+ Add</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  if (hostMode) {
+    html += `<button style="width:100%;margin-top:6px;background:var(--panel);border:1px dashed var(--border2);color:var(--gold2);padding:8px;border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit;font-weight:bold;" onclick="document.getElementById('addteam-name-input').value='';openModal('addteam-modal')">+ Add Team</button>`;
+  }
+  panel.innerHTML = html;
+}
+
+function toggleRoster(teamId) {
+  const body = document.querySelector(`.roster-body[data-team-id="${teamId}"]`);
+  const toggle = body ? body.previousElementSibling.querySelector('.roster-toggle') : null;
+  if (body) body.classList.toggle('open');
+  if (toggle) toggle.classList.toggle('open');
+}
+
+function doAddPlayer(teamId) {
+  const el = document.getElementById(`add-input-${teamId}`);
+  if (el) { addPlayer(teamId, el.value); el.value = ''; }
+}
+
+
+function renderLadder() {
+  const ladder = document.getElementById('ladder');
+  // keep h2
+  let html = '<h2>⚔️ The Ladder</h2>';
+  for (const tier of TIERS) {
+    const tasks = state.tasks[tier.key] || [];
+    html += `<div class="tier-section">
+      <div class="tier-heading th-${tier.key}">
+        <img class="th-rank-img" src="${tier.rankImg}" onerror="this.style.display='none'" loading="lazy" alt="${tier.name} rank">
+        <span class="th-name">${tier.name}</span>
+        <span class="th-pts">${tier.ptsLabel}</span>
+      </div>
+      <div class="task-grid gb-${tier.key}">`;
+    for (const task of tasks) {
+      html += renderTaskCard(task, tier.key);
+    }
+    html += '</div></div>';
+  }
+  ladder.innerHTML = html;
+}
+
+function teamColorClass(teamIdx) {
+  return `team-color-${teamIdx}`;
+}
+
+function renderTaskCard(task, tierKey) {
+  const n = task.imgs ? task.imgs.length : 0;
+  const cls = iconClass(n);
+  const iconsHtml = (task.imgs||[]).map(url =>
+    `<img src="${url}" loading="lazy" onerror="this.style.display='none'" alt="">`
+  ).join('');
+
+  // Repeatable badge
+  const repBadge = task.repeatable ? `<span class="repeat-badge">Repeatable</span>` : '';
+
+  // Figure out which teams completed this task (for card background)
+  const completedByIdx = [];
+  state.teams.forEach((team, idx) => {
+    const comp = (state.completions[task.id]||{})[team.id];
+    const isDone = task.repeatable
+      ? (comp > 0)          // works for numbers AND booleans (true > 0 is true)
+      : !!comp;
+    if (isDone) completedByIdx.push(idx);
+  });
+  let cardExtraClass = '';
+  let cardExtraStyle = '';
+  const TEAM_COLORS_RGB = ['192,48,48','32,96,192','32,160,80','176,96,208','208,144,32'];
+  const TEAM_COLORS_SOLID = ['#a02828','#1a52a8','#1a8840','#9050b8','#b07818'];
+  if (completedByIdx.length === 1) {
+    const rgb = TEAM_COLORS_RGB[completedByIdx[0]] || '180,180,180';
+    cardExtraStyle = `background:rgba(${rgb},.22)!important;`;
+  } else if (completedByIdx.length >= 2) {
+    // Build a diagonal gradient with one equal slice per completing team
+    const pct = 100 / completedByIdx.length;
+    const stops = [];
+    completedByIdx.forEach((teamIdx, i) => {
+      const rgb = TEAM_COLORS_RGB[teamIdx] || '180,180,180';
+      const a = (i * pct).toFixed(1);
+      const b = ((i + 1) * pct).toFixed(1);
+      stops.push(`rgba(${rgb},.28) ${a}%`, `rgba(${rgb},.28) ${b}%`);
+    });
+    cardExtraStyle = `background:linear-gradient(135deg,${stops.join(',')})!important;`;
+  }
+
+  // Badges per team
+  let chipsHtml = '<div class="team-dots">';
+  state.teams.forEach((team, idx) => {
+    const solidColor = TEAM_COLORS_SOLID[idx] || '#555';
+    const comp = (state.completions[task.id]||{})[team.id];
+    if (task.repeatable) {
+      const count = typeof comp === 'number' ? comp : 0;
+      const hasDone = count > 0;
+      const badgeClass = hasDone ? 'badge-done' : 'badge-undone';
+      // dot: filled when has completions, outlined (like non-repeatable undone) when 0
+      const dotStyle = hasDone
+        ? `background:${solidColor}`
+        : `background:transparent;border:2px solid ${solidColor}`;
+      // right side: count when > 0, nothing when 0
+      const rightHtml = hasDone ? `<span class="badge-count" style="color:${solidColor}">${count}</span>` : '';
+      if (hostMode) {
+        chipsHtml += `<div class="team-badge ${badgeClass}" style="border-color:${solidColor};background:rgba(0,0,0,0.35)">
+          <div class="badge-dot" style="${dotStyle}"></div>
+          <span class="badge-label">${team.name}</span>
+          <div class="rep-controls">
+            <button class="cnt-btn cnt-minus" onclick="removeRepeatableCompletion('${task.id}','${team.id}')" title="−1">−</button>
+            ${rightHtml || `<span class="badge-count" style="color:var(--text2)">0</span>`}
+            <button class="cnt-btn cnt-plus" onclick="addRepeatableCompletion('${task.id}','${team.id}')" title="+1">+</button>
+          </div>
+        </div>`;
+      } else {
+        chipsHtml += `<div class="team-badge ${badgeClass}" style="border-color:${solidColor};background:rgba(0,0,0,0.35)">
+          <div class="badge-dot" style="${dotStyle}"></div>
+          <span class="badge-label">${team.name}</span>
+          ${rightHtml}
+        </div>`;
+      }
+    } else {
+      const done = !!comp;
+      const click = hostMode ? `onclick="toggleCompletion('${task.id}','${team.id}')"` : '';
+      const titleText = done ? (hostMode ? `Click to undo — ${team.name}` : `${team.name}: complete`) : (hostMode ? `Mark ${team.name} complete` : `${team.name}: incomplete`);
+      chipsHtml += `<div class="team-badge ${done?'badge-done':'badge-undone'} ${hostMode?'hc':''}" style="border-color:${solidColor};background:rgba(0,0,0,0.35)" ${click} title="${titleText}">
+        <div class="badge-dot" style="background:${done?solidColor:'transparent'};border:2px solid ${solidColor}"></div>
+        <span class="badge-label">${team.name}</span>
+        ${done ? `<span class="badge-check" style="color:${solidColor}">✓</span>` : ''}
+      </div>`;
+    }
+  });
+  chipsHtml += '</div>';
+
+  return `<div class="task-card ${cardExtraClass}" style="${cardExtraStyle}">
+    <div class="task-icons ${cls}">${iconsHtml}</div>
+    <div class="task-name">${task.name}</div>
+    ${repBadge}
+    ${chipsHtml}
+  </div>`;
+}
+
+function renderLog() {
+  const ul = document.getElementById('log-list');
+  if (!state.log || state.log.length === 0) {
+    ul.innerHTML = '<li><span class="log-text" style="color:var(--text2)">No completions yet.</span></li>';
+    return;
+  }
+  ul.innerHTML = state.log.slice(0,30).map(e => {
+    const d = new Date(e.ts);
+    const ts = d.toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    return `<li><span class="log-text">${e.text}</span><span class="log-meta"><span style="font-size:11px;color:var(--text2)">${ts}</span></span></li>`;
+  }).join('');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+async function init() {
+  loadState();
+  renderAll();
+  // Load Supabase async — never block render
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  script.onload = async () => {
+    initSupabase();
+    const fromDb = await loadFromSupabase();
+    if (fromDb) renderAll();
+    subscribeRealtime();
+  };
+  script.onerror = () => {}; // offline fallback — localStorage already loaded
+  document.head.appendChild(script);
+}
+init();
+
+// ── BACKGROUND BOUNCING ICONS ─────────────────────────────────────────────
+(function startBgIcons() {
+  const allImgs = [];
+  const seen = new Set();
+  for (const tier of Object.values(DEFAULT_TASKS)) {
+    for (const task of tier) {
+      for (const url of (task.imgs || [])) {
+        if (!seen.has(url)) { seen.add(url); allImgs.push(url); }
+      }
+    }
+  }
+  if (!allImgs.length) return;
+
+  const container = document.createElement('div');
+  container.id = 'bg-icons';
+  container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden;z-index:0;';
+  document.body.insertBefore(container, document.body.firstChild);
+
+  const COUNT = 50;
+  const SIZE = 42;
+  const icons = [];
+
+  for (let i = 0; i < COUNT; i++) {
+    const url = allImgs[i % allImgs.length];
+    const el = document.createElement('img');
+    el.src = url;
+    el.style.cssText = 'position:absolute;width:' + SIZE + 'px;height:' + SIZE + 'px;object-fit:contain;opacity:0.28;image-rendering:pixelated;will-change:transform;';
+    el.onerror = function() { this.style.display='none'; };
+    container.appendChild(el);
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const ic = {
+      el,
+      x: Math.random() * (vw - SIZE),
+      y: Math.random() * (vh - SIZE),
+      vx: (Math.random() * 0.5 + 0.2) * (Math.random() < 0.5 ? 1 : -1),
+      vy: (Math.random() * 0.5 + 0.2) * (Math.random() < 0.5 ? 1 : -1),
+    };
+    el.style.transform = 'translate(' + ic.x + 'px,' + ic.y + 'px)';
+    icons.push(ic);
+  }
+
+  function tick() {
+    const vw = window.innerWidth, vh = window.innerHeight;
+    for (const ic of icons) {
+      ic.x += ic.vx; ic.y += ic.vy;
+      if (ic.x <= 0)         { ic.x = 0;         ic.vx =  Math.abs(ic.vx); }
+      if (ic.x >= vw - SIZE) { ic.x = vw - SIZE; ic.vx = -Math.abs(ic.vx); }
+      if (ic.y <= 0)         { ic.y = 0;         ic.vy =  Math.abs(ic.vy); }
+      if (ic.y >= vh - SIZE) { ic.y = vh - SIZE; ic.vy = -Math.abs(ic.vy); }
+      ic.el.style.transform = 'translate(' + ic.x.toFixed(1) + 'px,' + ic.y.toFixed(1) + 'px)';
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
