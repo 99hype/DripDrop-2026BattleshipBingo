@@ -764,12 +764,27 @@ function initSupabase() {
   } catch(e) {}
 }
 
+function mergeRemoteState(saved) {
+  // Always re-root tasks on DEFAULT_TASKS so removed tasks never come back
+  state = { ...DEFAULT_STATE, ...saved, tasks: DEFAULT_TASKS };
+  for (const [k, arr] of Object.entries(saved.tasks || {})) {
+    const defaultIds = new Set((DEFAULT_TASKS[k]||[]).map(t=>t.id));
+    const extras = arr.filter(t => !defaultIds.has(t.id));
+    if (extras.length) state.tasks[k] = [...(DEFAULT_TASKS[k]||[]), ...extras];
+  }
+  // Strip completion entries for tasks that no longer exist
+  const allTaskIds = new Set(Object.values(state.tasks).flat().map(t=>t.id));
+  for (const taskId of Object.keys(state.completions||{})) {
+    if (!allTaskIds.has(taskId)) delete state.completions[taskId];
+  }
+}
+
 async function loadFromSupabase() {
   if (!sbClient) return false;
   try {
     const { data, error } = await sbClient.from(TABLE).select('state').eq('id',1).single();
     if (error || !data) return false;
-    state = data.state;
+    mergeRemoteState(data.state);
     return true;
   } catch(e) { return false; }
 }
@@ -785,10 +800,10 @@ function subscribeRealtime() {
   if (!sbClient) return;
   sbClient.channel('ladder_changes')
     .on('postgres_changes', { event:'INSERT', schema:'public', table:TABLE }, payload => {
-      if (payload.new && payload.new.state) { state = payload.new.state; renderAll(); }
+      if (payload.new && payload.new.state) { mergeRemoteState(payload.new.state); renderAll(); }
     })
     .on('postgres_changes', { event:'UPDATE', schema:'public', table:TABLE }, payload => {
-      if (payload.new && payload.new.state) { state = payload.new.state; renderAll(); }
+      if (payload.new && payload.new.state) { mergeRemoteState(payload.new.state); renderAll(); }
     })
     .subscribe((status) => {
       if (status === 'SUBSCRIBED') console.log('[LB] realtime connected');
