@@ -768,8 +768,8 @@ function mergeRemoteState(saved) {
   // Always re-root tasks on DEFAULT_TASKS so removed tasks never come back
   state = { ...DEFAULT_STATE, ...saved, tasks: DEFAULT_TASKS };
   for (const [k, arr] of Object.entries(saved.tasks || {})) {
-    const defaultIds = new Set((DEFAULT_TASKS[k]||[]).map(t=>t.id));
-    const extras = arr.filter(t => !defaultIds.has(t.id));
+    // Only keep host-added custom tasks (never old default IDs that were removed)
+    const extras = arr.filter(t => t.id && t.id.startsWith('custom_'));
     if (extras.length) state.tasks[k] = [...(DEFAULT_TASKS[k]||[]), ...extras];
   }
   // Strip completion entries for tasks that no longer exist
@@ -836,10 +836,9 @@ function loadState() {
       const saved = JSON.parse(s);
       // Always use DEFAULT_TASKS as the base; merge in any host-added custom tasks
       state = { ...DEFAULT_STATE, ...saved, tasks: DEFAULT_TASKS };
-      // Merge any custom tasks the host added that aren't in defaults
+      // Only merge host-added custom tasks (never old default IDs that were removed)
       for (const [k, arr] of Object.entries(saved.tasks || {})) {
-        const defaultIds = new Set((DEFAULT_TASKS[k]||[]).map(t=>t.id));
-        const extras = arr.filter(t => !defaultIds.has(t.id));
+        const extras = arr.filter(t => t.id && t.id.startsWith('custom_'));
         if (extras.length) state.tasks[k] = [...(DEFAULT_TASKS[k]||[]), ...extras];
       }
       return true;
