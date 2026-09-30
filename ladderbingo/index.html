@@ -754,21 +754,21 @@ let hostMode = false;
 let editingTaskId = null;
 let editingTaskTier = null;
 let renamingTeamId = null;
-let supabase = null;
+let sbClient = null;
 
 // ── SUPABASE ──────────────────────────────────────────────────────────────
 function initSupabase() {
   try {
     if (window.supabase && window.supabase.createClient) {
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     }
   } catch(e) {}
 }
 
 async function loadFromSupabase() {
-  if (!supabase) { console.warn('[LB] Supabase not initialised'); return false; }
+  if (!sbClient) { console.warn('[LB] Supabase not initialised'); return false; }
   try {
-    const { data, error } = await supabase.from(TABLE).select('state').eq('id',1).single();
+    const { data, error } = await sbClient.from(TABLE).select('state').eq('id',1).single();
     if (error) { console.error('[LB] load error:', error.message, error.code, error.details); return false; }
     if (!data) { console.warn('[LB] no row found — fresh start'); return false; }
     state = data.state;
@@ -778,17 +778,17 @@ async function loadFromSupabase() {
 }
 
 async function saveToSupabase() {
-  if (!supabase) { console.warn('[LB] Supabase not initialised — saving locally only'); return; }
+  if (!sbClient) { console.warn('[LB] Supabase not initialised — saving locally only'); return; }
   try {
-    const { error } = await supabase.from(TABLE).upsert({ id:1, state: state, updated_at: new Date().toISOString() });
+    const { error } = await sbClient.from(TABLE).upsert({ id:1, state: state, updated_at: new Date().toISOString() });
     if (error) console.error('[LB] save error:', error.message, error.code, error.details);
     else console.log('[LB] saved to Supabase');
   } catch(e) { console.error('[LB] save exception:', e); }
 }
 
 function subscribeRealtime() {
-  if (!supabase) return;
-  supabase.channel('ladder_changes')
+  if (!sbClient) return;
+  sbClient.channel('ladder_changes')
     .on('postgres_changes', { event:'UPDATE', schema:'public', table:TABLE }, payload => {
       if (payload.new && payload.new.state) {
         state = payload.new.state;
