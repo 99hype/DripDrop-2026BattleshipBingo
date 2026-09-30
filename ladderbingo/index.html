@@ -766,24 +766,20 @@ function initSupabase() {
 }
 
 async function loadFromSupabase() {
-  if (!sbClient) { console.warn('[LB] Supabase not initialised'); return false; }
+  if (!sbClient) return false;
   try {
     const { data, error } = await sbClient.from(TABLE).select('state').eq('id',1).single();
-    if (error) { console.error('[LB] load error:', error.message, error.code, error.details); return false; }
-    if (!data) { console.warn('[LB] no row found — fresh start'); return false; }
+    if (error || !data) return false;
     state = data.state;
-    console.log('[LB] loaded from Supabase');
     return true;
-  } catch(e) { console.error('[LB] load exception:', e); return false; }
+  } catch(e) { return false; }
 }
 
 async function saveToSupabase() {
-  if (!sbClient) { console.warn('[LB] Supabase not initialised — saving locally only'); return; }
+  if (!sbClient) return;
   try {
-    const { error } = await sbClient.from(TABLE).upsert({ id:1, state: state, updated_at: new Date().toISOString() });
-    if (error) console.error('[LB] save error:', error.message, error.code, error.details);
-    else console.log('[LB] saved to Supabase');
-  } catch(e) { console.error('[LB] save exception:', e); }
+    await sbClient.from(TABLE).upsert({ id:1, state: state, updated_at: new Date().toISOString() });
+  } catch(e) {}
 }
 
 function subscribeRealtime() {
